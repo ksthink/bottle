@@ -1492,7 +1492,9 @@ function radioPlay(){
   if(!radio.audio){radio.audio=new Audio();radio.audio.crossOrigin='anonymous';radio.audio.disableRemotePlayback=true;radio.audio.setAttribute('playsinline','')}
   var a=radio.audio; initAudio(); radioGraph(a); try{var pp=a.play();if(pp&&pp.catch)pp.catch(function(){})}catch(e){} // 누른 순간 재생 권한을 잡아 둔다(iOS)
   // 어떤 길로 재생되는지 상태 줄에 함께 적는다(모바일에서 공간 효과가 빠지는 원인을 찾기 위함)
-  function fx(){var ok=radio.mode==='hls'&&AU&&AU.radio&&AU.ctx.state==='running';return ok?' · 공간 효과 켜짐':' · 공간 효과 없음('+(radio.mode==='hls'?'오디오 '+(AU?AU.ctx.state:'없음'):radio.mode)+')'}
+  // iPhone·iPad의 모든 브라우저(WebKit)는 방송 소리를 Web Audio로 넘겨주지 않아, 연결은 돼도 효과가 실제로 걸리지 않는다
+  var IOS=/iP(hone|ad|od)/.test(navigator['user'+'Agent'])||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+  function fx(){if(IOS)return ' · 공간 효과 없음(iOS 제한)';var ok=radio.mode==='hls'&&AU&&AU.radio&&AU.ctx.state==='running';return ok?' · 공간 효과 켜짐':' · 공간 효과 없음('+(radio.mode==='hls'?'오디오 '+(AU?AU.ctx.state:'없음'):radio.mode)+')'}
   function start(){a.play().then(function(){radioStatus(RADIO_TEST.name+' 듣는 중'+fx())}).catch(function(er){if(er&&er.name==='NotAllowedError')radioStatus('재생이 막혔습니다. 한 번 더 눌러 주세요.')})}
   // iOS 사파리의 기본 HLS 재생은 Web Audio를 거치지 않아 공간 효과가 빠진다. 그래서 hls.js(iOS 17.1+의 ManagedMediaSource)를 먼저 쓴다
   loadHls(function(err){if(!radio.on)return;
