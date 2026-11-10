@@ -1491,12 +1491,14 @@ function radioPlay(){
   radio.on=true;updRadioBtn();radioStatus('주파수를 맞추는 중…');sfx('radio_tune',W.radioPos.x,W.radioPos.y+.15,W.radioPos.z,.5);
   if(!radio.audio){radio.audio=new Audio();radio.audio.crossOrigin='anonymous';radio.audio.disableRemotePlayback=true;radio.audio.setAttribute('playsinline','')}
   var a=radio.audio; initAudio(); radioGraph(a); try{var pp=a.play();if(pp&&pp.catch)pp.catch(function(){})}catch(e){} // 누른 순간 재생 권한을 잡아 둔다(iOS)
-  function start(){a.play().then(function(){radioStatus(RADIO_TEST.name+' 듣는 중')}).catch(function(er){if(er&&er.name==='NotAllowedError')radioStatus('재생이 막혔습니다. 한 번 더 눌러 주세요.')})}
+  // 어떤 길로 재생되는지 상태 줄에 함께 적는다(모바일에서 공간 효과가 빠지는 원인을 찾기 위함)
+  function fx(){var ok=radio.mode==='hls'&&AU&&AU.radio&&AU.ctx.state==='running';return ok?' · 공간 효과 켜짐':' · 공간 효과 없음('+(radio.mode==='hls'?'오디오 '+(AU?AU.ctx.state:'없음'):radio.mode)+')'}
+  function start(){a.play().then(function(){radioStatus(RADIO_TEST.name+' 듣는 중'+fx())}).catch(function(er){if(er&&er.name==='NotAllowedError')radioStatus('재생이 막혔습니다. 한 번 더 눌러 주세요.')})}
   // iOS 사파리의 기본 HLS 재생은 Web Audio를 거치지 않아 공간 효과가 빠진다. 그래서 hls.js(iOS 17.1+의 ManagedMediaSource)를 먼저 쓴다
   loadHls(function(err){if(!radio.on)return;
-    if(err||!window.Hls||!Hls.isSupported()){if(a.canPlayType('application/vnd.apple.mpegurl')){a.onerror=function(){radioFail()};a.src=RADIO_TEST.url;start()}else radioFail('이 브라우저에서는 방송을 들을 수 없습니다.');return}
-    var h=radio.hls=new Hls({manifestLoadingMaxRetry:1,levelLoadingMaxRetry:2,fragLoadingMaxRetry:2});
-    h.on(Hls.Events.ERROR,function(e,d){if(!d.fatal||radio.hls!==h)return;h.destroy();radio.hls=null;
+    if(err||!window.Hls||!Hls.isSupported()){radio.mode='기본 재생: '+(err?'hls.js 못 불러옴':'hls.js 미지원');if(a.canPlayType('application/vnd.apple.mpegurl')){a.onerror=function(){radioFail()};a.src=RADIO_TEST.url;start()}else radioFail('이 브라우저에서는 방송을 들을 수 없습니다.');return}
+    radio.mode='hls';var h=radio.hls=new Hls({manifestLoadingMaxRetry:1,levelLoadingMaxRetry:2,fragLoadingMaxRetry:2});
+    h.on(Hls.Events.ERROR,function(e,d){if(!d.fatal||radio.hls!==h)return;h.destroy();radio.hls=null;radio.mode='기본 재생: hls.js 오류 '+(d.details||d.type);
       // hls.js가 안 되면 기본 재생으로라도 튼다(이때는 공간 효과가 빠질 수 있다)
       if(radio.on&&a.canPlayType('application/vnd.apple.mpegurl')){a.onerror=function(){radioFail()};a.src=RADIO_TEST.url;start()}else radioFail()});
     h.loadSource(RADIO_TEST.url);h.attachMedia(a);start()});
@@ -1620,7 +1622,7 @@ function listenRadio(){
   }
   openSheet('<p class="tag">라디오</p>'+body+'<div class="btns"><button id="rplay" type="button" class="rch" aria-pressed="false"></button></div><p class="rstat" id="rstat" aria-live="polite"></p>'+
     '<div class="btns"><button id="rclose" type="button" class="primary">닫기</button></div>','radio');
-  updRadioBtn();radioStatus(radio.on?RADIO_TEST.name+' 듣는 중 · 닫아도 계속 나옵니다.':'');
+  updRadioBtn();radioStatus(radio.on?RADIO_TEST.name+' 듣는 중 · '+(radio.mode==='hls'?'공간 효과 켜짐':'공간 효과 없음('+radio.mode+')'):'');
   $('rplay').onclick=function(){if(radio.on){radioStop();radioStatus('')}else radioPlay()};
   $('rclose').onclick=closeSheet;
 }
