@@ -13,4 +13,6 @@ npx serve .
 
 ## 배포
 
-Vercel에서 이 저장소를 가져오면 정적 사이트로 바로 배포됩니다 (Framework Preset: Other, 빌드 명령 없음).
+GitHub Pages로 배포합니다. `main` 브랜치 루트를 그대로 내보내며 빌드 단계는 없습니다.
+
+https://ksthink.github.io/bottle/
