@@ -186,7 +186,8 @@ if(!window.THREE){ $('fail').hidden=false; return; }
     '  vec3 c=shadowCoord.xyz/shadowCoord.w;c.z+=shadowBias;vec2 tx=3./shadowMapSize;float sum=0.,n=0.;',
     '  for(int i=-2;i<=2;i++)for(int j=-2;j<=2;j++){float d=unpackRGBAToDepth(texture2D(shadowMap,c.xy+vec2(float(i),float(j))*tx));if(d<c.z){sum+=d;n+=1.;}}',
     '  if(n<1.)return s;float dist=(c.z-sum/n)*419.;',
-    '  return mix(s,1.,.9*smoothstep(.3,4.,dist));}',
+    '  float nk=clamp(shadowRadius-1.,0.,1.);', // 밤(달빛)일수록 1: radius 칸을 낮밤 신호로 쓴다
+    '  return mix(s,1.,max(.9*smoothstep(.3,4.,dist),nk*.72));}',
     '#endif'].join('\n')}
   // 모닥불 그림자: 옅게(최대 25%), 넓게 번지는 부드러운 모양, 가리는 물체에서 멀어지면 사라진다
   var PSIG='float getPointShadow( sampler2D shadowMap, vec2 shadowMapSize, float shadowBias, float shadowRadius, vec4 shadowCoord, float shadowCameraNear, float shadowCameraFar ) {';
@@ -1755,7 +1756,7 @@ function frame(now){
   hemi.intensity=0.15+0.45*light; hemi.color.copy(HEMI_N).lerp(HEMI_D,light); sun.intensity=(.72*(1-.82*WX.dark))*light+(1-light)*.2*(1-WX.cover*.85); hemi.intensity*=1-.4*WX.dark; hemi.intensity+=WX.flash*1.8;
   var sa=(t/DAY%1)*Math.PI*2;
   var mA=sa+Math.PI; moonDir.set(Math.cos(mA)*.75,Math.sin(mA)*.8+.12,.5).normalize(); sunDirV.set(Math.cos(sa)*90,Math.max(e,0.08)*110+25,55).normalize();
-  var dayK=smoothstep(.15,.45,light); tmpV.copy(moonDir).lerp(sunDirV,dayK).normalize(); if(tmpV.y<.62){var hl=Math.hypot(tmpV.x,tmpV.z)||1,hk=Math.sqrt(1-.62*.62)/hl;tmpV.x*=hk;tmpV.z*=hk;tmpV.y=.62} // 해·달이 낮아도 그림자는 키의 1.3배 안쪽 sun.color.copy(MOON_C).lerp(SUN_C,dayK);
+  var dayK=smoothstep(.15,.45,light); tmpV.copy(moonDir).lerp(sunDirV,dayK).normalize(); sun.shadow.radius=2-dayK; if(tmpV.y<.62){var hl=Math.hypot(tmpV.x,tmpV.z)||1,hk=Math.sqrt(1-.62*.62)/hl;tmpV.x*=hk;tmpV.z*=hk;tmpV.y=.62} // 해·달이 낮아도 그림자는 키의 1.3배 안쪽 sun.color.copy(MOON_C).lerp(SUN_C,dayK);
   sun.target.position.copy(who.position); sun.position.copy(who.position).addScaledVector(tmpV,135);
   // 색온도: 맑은 낮은 살짝 따뜻하게, 해 질 녘은 주황빛, 흐리거나 비가 오면 차가운 회청색, 밤은 푸르게
   tmpC2.copy(SUN_C).lerp(C_DUSKSUN,dusk*.8*(1-WX.dark)).lerp(C_OVSUN,WX.cover*.6).lerp(C_STSUN,WX.dark*.9); sun.color.copy(MOON_C).lerp(tmpC2,dayK);
