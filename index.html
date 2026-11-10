@@ -75,6 +75,8 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .sheet button:hover{background:rgba(43,41,34,.14)}
 .sheet button.primary{background:var(--paper-ink);color:var(--paper);border-color:transparent}
 .sheet button.primary:hover{background:#000}
+.sheet .rch[aria-pressed="true"]{background:var(--paper-ink);color:var(--paper);border-color:transparent}
+.sheet .rstat{font-family:var(--font-ui);font-size:13px;color:var(--paper-muted);margin:6px 0 4px;min-height:1.4em}
 .sheet .note{font-family:var(--font-ui);font-size:13px;color:var(--paper-muted);margin:6px 0 0}
 .sheet .err{font-family:var(--font-ui);font-size:13px;color:#9b3d1f;margin:6px 0 0;min-height:1.5em}
 .sheet textarea{width:100%;box-sizing:border-box;min-height:9.5em;resize:vertical;background:transparent;border:1px solid rgba(43,41,34,.3);border-radius:3px;
@@ -1464,10 +1466,31 @@ function throwBottle(){
   toast('병이 떠내려갑니다. 누군가에게 반드시 닿습니다. 닿았는지는 알 수 없습니다.',7);
   if(state.nextAt===null||state.nextAt-state.t>12) state.nextAt=state.t+12;
 }
+// [테스트] KBS 1라디오 스트림. 서명된 주소라 2026-11-12 20:56(KST)에 만료된다.
+var RADIO_TEST={name:'KBS 1라디오',exp:1794484598,url:'https://1radio.gscdn.kbs.co.kr/1radio_192_4.m3u8?Policy=eyJTdGF0ZW1lbnQiOlt7IlJlc291cmNlIjoiaHR0cHM6Ly8xcmFkaW8uZ3NjZG4ua2JzLmNvLmtyLyoiLCJDb25kaXRpb24iOnsiRGF0ZUxlc3NUaGFuIjp7IkFXUzpFcG9jaFRpbWUiOjE3OTQ0ODQ1OTh9fX1dfQ__&Key-Pair-Id=APKAICDSGT3Y7IXGJ3TA&Signature=BVbQdUU02heVoxHxuJ6OwicGdaYGE~jvLBmD7F-SKx8ocH8tIvnzqcC8yZ~G~N0~M0DWjYGGz9wivrUvHuCAaZCl5WHfYlhGteaA7wIhuTDgM4KwPiM6ias3gRwXz~sb4aO5OE7iqO209Oa3RD1ou~hKTNfQjxTMTIKoZbvjAJp4iTc~UXGjEGB5z9OGApP4KMUi3MDpjluRdVYPeb8p-vGK8SdwuvRppQ3aBlQ8FalcwP5tsTkmekyMwU1PeR0A5niTDLZkeQnqBFVrpU4~8M6NM8eJSIRqhhLfWFFwFq2ntXVz7su0HhCcb2HMhYb5S0JZpQ96xIhl3loHlSns-g__'};
+var radio={on:false,audio:null,hls:null};
+function loadHls(cb){if(window.Hls)return cb();var sc=document.createElement('script');sc.src='https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.13/hls.min.js';sc.onload=function(){cb()};sc.onerror=function(){cb(new Error('hls'))};document.head.appendChild(sc)}
+function radioStatus(t){var el=$('rstat');if(el)el.textContent=t}
+function updRadioBtn(){var bt=$('rplay');if(bt){bt.setAttribute('aria-pressed',String(radio.on));bt.textContent=radio.on?RADIO_TEST.name+' 끄기':RADIO_TEST.name+' 듣기'}}
+function radioStop(){radio.on=false;if(radio.hls){radio.hls.destroy();radio.hls=null}if(radio.audio){radio.audio.pause();radio.audio.removeAttribute('src');try{radio.audio.load()}catch(e){}}updRadioBtn()}
+function radioFail(msg){radioStop();radioStatus(msg||'치직… 치지직… 방송이 잡히지 않습니다.')}
+function radioPlay(){
+  if(Date.now()/1000>RADIO_TEST.exp){radioStatus('테스트용 방송 주소가 만료되었습니다.');return}
+  radio.on=true;updRadioBtn();radioStatus('주파수를 맞추는 중…');
+  if(!radio.audio){radio.audio=new Audio();radio.audio.volume=.8}
+  var a=radio.audio;
+  function start(){a.play().then(function(){radioStatus(RADIO_TEST.name+' 듣는 중')}).catch(function(er){if(er&&er.name==='NotAllowedError')radioStatus('재생이 막혔습니다. 한 번 더 눌러 주세요.')})}
+  if(!window.MediaSource&&a.canPlayType('application/vnd.apple.mpegurl')){a.onerror=function(){radioFail()};a.src=RADIO_TEST.url;start();return}
+  loadHls(function(err){if(!radio.on)return;
+    if(err||!window.Hls||!Hls.isSupported()){if(a.canPlayType('application/vnd.apple.mpegurl')){a.onerror=function(){radioFail()};a.src=RADIO_TEST.url;start()}else radioFail('이 브라우저에서는 방송을 들을 수 없습니다.');return}
+    var h=radio.hls=new Hls({manifestLoadingMaxRetry:1,levelLoadingMaxRetry:2,fragLoadingMaxRetry:2});
+    h.on(Hls.Events.ERROR,function(e,d){if(d.fatal&&radio.hls===h)radioFail()});
+    h.loadSource(RADIO_TEST.url);h.attachMedia(a);start()});
+}
 function listenRadio(){
   var day=Math.floor(state.t/DAY)+1, e=sunE(), body;
-  if(e<0.05) body='<p>치직… 치지직…</p><p class="note" style="color:var(--muted)">해가 져서 라디오가 켜지지 않습니다. 태양열로만 작동합니다.</p>';
-  else if(isCloudy(day)) body='<p>치직… 치지직…</p><p class="note" style="color:var(--muted)">구름이 두꺼워 전기가 모자랍니다. 맑은 날 다시 켜 보세요.</p>';
+  if(e<0.05) body='<p class="note" style="color:var(--paper-muted)">해가 져서 날씨 방송은 쉽니다.</p>';
+  else if(isCloudy(day)) body='<p class="note" style="color:var(--paper-muted)">구름이 두꺼워 날씨 방송이 잘 잡히지 않습니다.</p>';
   else{
     var wa=windAngle(day), to=bearingName(Math.cos(wa),Math.sin(wa)), from=bearingName(-Math.cos(wa),-Math.sin(wa));
     body='<p>'+day+'일째 방송입니다. 날씨는 '+WX_KIND[WX.kind].name+'입니다. '+from+'풍이 불고, 물결은 '+to+'쪽 해변으로 밉니다. 지금은 '+(W.seaRising?'밀물':'썰물')+'입니다.</p>';
@@ -1475,8 +1498,11 @@ function listenRadio(){
     if(state.beach.length){var b=state.beach[0];body+='<p>지난 물때에는 물결이 '+bearingName(b.x,b.z)+'쪽 해변으로 밀었습니다.</p>'}
     else if(state.bottles>=3) body+='<p>가까운 바다에 떠다니는 것은 없습니다.</p>';
   }
-  openSheet('<p class="tag">태양열 라디오</p>'+body+'<div class="btns"><button id="roff" type="button">끈다</button></div>','radio');
-  $('roff').onclick=closeSheet;
+  openSheet('<p class="tag">태양열 라디오</p>'+body+'<div class="btns"><button id="rplay" type="button" class="rch" aria-pressed="false"></button></div><p class="rstat" id="rstat" aria-live="polite"></p>'+
+    '<div class="btns"><button id="rclose" type="button" class="primary">닫기</button></div>','radio');
+  updRadioBtn();radioStatus(radio.on?RADIO_TEST.name+' 듣는 중 · 닫아도 계속 나옵니다.':'');
+  $('rplay').onclick=function(){if(radio.on){radioStop();radioStatus('')}else radioPlay()};
+  $('rclose').onclick=closeSheet;
 }
 $('veil').addEventListener('pointerdown',function(ev){if(ev.target===this&&!$('letter-text'))closeSheet()});
 document.addEventListener('keydown',function(ev){if(ev.key==='Escape'&&modalOpen)closeSheet()});
