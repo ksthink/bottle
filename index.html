@@ -453,16 +453,17 @@ function isCloudy(){return WX.cover>.6}
 var windDirU={value:new THREE.Vector2(1,0)},windStrU={value:.2};
 // 바람에 흔들림: 풀, 덤불 잎, 야자 잎과 줄기를 세계 좌표에서 바람 방향으로 휘게 하고, 돌풍과 잔떨림을 더한다
 var WIND_BEND={grass:'pow(max(position.y,0.)/.55,2.)*.32',flower:'pow(max(position.y,0.)/.55,2.)*.3',trunk:'pow(max(position.y,0.)/7.,2.)*.6',frond:'(.6+pow(max(position.z,0.)/4.4,2.)*.9)',leaf:'(.07+max(position.z,0.)*.25)'};
-var WIND_FLUT={grass:'.05',flower:'.03',trunk:'.0',frond:'.09*max(position.z,0.)/4.4',leaf:'.03'};
+var WIND_K={grass:'.6',flower:'.6',trunk:'1.',frond:'1.',leaf:'1.'}; // 풀은 바람 세기를 눌러서 잔잔~약간 센 정도로만
+var WIND_FLUT={grass:'.035',flower:'.025',trunk:'.0',frond:'.09*max(position.z,0.)/4.4',leaf:'.03'};
 function windify(m,kind){var prev=m.onBeforeCompile,pk=m.customProgramCacheKey;
   m.onBeforeCompile=function(sh,r){if(prev)prev(sh,r);sh.uniforms.uWT2=windU;sh.uniforms.uWD=windDirU;sh.uniforms.uWS=windStrU;
     sh.vertexShader='uniform float uWT2,uWS;uniform vec2 uWD;\nfloat wh(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}\nfloat wn(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(wh(i),wh(i+vec2(1.,0.)),f.x),mix(wh(i+vec2(0.,1.)),wh(i+vec2(1.,1.)),f.x),f.y);}\n'+sh.vertexShader.replace('#include <project_vertex>',[
       'vec4 wp4=vec4(transformed,1.);','#ifdef USE_INSTANCING','wp4=instanceMatrix*wp4;','#endif','wp4=modelMatrix*wp4;',
-      'vec2 wpp=vec2(-uWD.y,uWD.x);float wal=dot(wp4.xz,uWD),wac=dot(wp4.xz,wpp);',
-      'vec2 gq=vec2((wal-uWT2*(2.5+uWS*9.))*.07,wac*.035);float gn=wn(gq)*.62+wn(gq*2.2+3.1)*.38;float gust=smoothstep(.3,.82,gn);',
-      'float sway=gust+.15*sin(uWT2*2.6-wal*.4)*gust;',
-      'float flut=sin(uWT2*(5.+uWS*9.)+wal*1.7+position.z*3.+position.y*4.)*gust;',
-      'vec2 wdisp=uWD*('+WIND_BEND[kind]+')*(uWS*(.2+1.25*sway)+.03)+wpp*flut*('+WIND_FLUT[kind]+')*(.15+uWS*.9);',
+      'float ws=uWS*'+WIND_K[kind]+';vec2 wpp=vec2(-uWD.y,uWD.x);float wal=dot(wp4.xz,uWD),wac=dot(wp4.xz,wpp);',
+      'vec2 gq=vec2((wal-uWT2*(1.6+ws*4.))*.06,wac*.03);float gn=wn(gq)*.62+wn(gq*2.2+3.1)*.38;float gust=smoothstep(.2,.9,gn);',
+      'float sway=gust+.08*sin(uWT2*1.2-wal*.3)*gust;',
+      'float flut=sin(uWT2*(1.8+ws*2.4)+wal*1.2+position.z*2.+position.y*2.5)*gust;',
+      'vec2 wdisp=uWD*('+WIND_BEND[kind]+')*(ws*(.25+.9*sway)+.025)+wpp*flut*('+WIND_FLUT[kind]+')*(.1+ws*.6);',
       'wp4.xz+=wdisp;wp4.y-=dot(wdisp,wdisp)*.18;',
       'vec4 mvPosition=viewMatrix*wp4;gl_Position=projectionMatrix*mvPosition;'].join('\n'))};
   m.customProgramCacheKey=function(){return 'wind-'+kind+(pk?pk.call(m):'')};return m}
