@@ -37,6 +37,7 @@ body{background:var(--ink);color:var(--fg);font-family:var(--font-ui);font-size:
 .panel{pointer-events:auto;background:var(--panel);border:1px solid var(--panel-line);border-radius:10px;padding:8px 12px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);min-width:0}
 .title{font-family:var(--font-letter);font-weight:700;font-size:17px;letter-spacing:.02em}
 .status{color:var(--muted);font-size:13px;font-variant-numeric:tabular-nums}
+.clock{font-size:13px;font-variant-numeric:tabular-nums;margin-top:2px}
 .seedbox{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .seedbox .label{font-size:12px;color:var(--muted);letter-spacing:.06em}
 .seedbox .num{font-variant-numeric:tabular-nums;font-size:15px}
@@ -111,6 +112,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
     <div class="row">
       <div class="panel">
         <div class="title">유리병 편지 섬</div>
+        <div class="clock" id="clock"></div>
         <div class="status" id="status">1일째</div>
       </div>
       <div class="panel seedbox">
@@ -141,7 +143,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
       </div>
       <div class="panel help">
         <b>땅을 누르면 걷고, 끌면 둘러봅니다.</b> 방향키와 휠도 됩니다.<br>
-        섬의 시간은 한국 시간에 맞춰 흐르고, 편지는 어디에도 저장되지 않습니다.
+        섬의 시간은 현지 시간에 맞춰 흐르고, 편지는 어디에도 저장되지 않습니다.
       </div>
     </div>
   </div>
@@ -209,9 +211,12 @@ function clamp(v,a,b){return v<a?a:v>b?b:v}
 function lerp(a,b,t){return a+(b-a)*t}
 function smoothstep(a,b,x){var t=clamp((x-a)/(b-a),0,1);return t*t*(3-2*t)}
 
-var DAY=86400;              // 실제 하루 (한국 시간 기준)
-// state.t = 오늘(KST) 06:00부터 흐른 초. 해 위상 0 = 06:00, .25 = 12:00, .5 = 18:00, .75 = 00:00
-function kstT(){var s=((Date.now()/1000+9*3600)%86400+86400)%86400;return (s-6*3600+86400)%86400}
+var DAY=86400;              // 실제 하루 (기기의 현지 시간 기준)
+// state.t = 오늘(현지) 06:00부터 흐른 초. 해 위상 0 = 06:00, .25 = 12:00, .5 = 18:00, .75 = 00:00
+function kstT(){var d=new Date(),s=d.getHours()*3600+d.getMinutes()*60+d.getSeconds()+d.getMilliseconds()/1000;return (s-6*3600+86400)%86400}
+var CLOCK_FMT=(function(){try{return new Intl.DateTimeFormat('ko-KR',{year:'numeric',month:'long',day:'numeric',weekday:'short',hour:'numeric',minute:'2-digit'})}catch(e){return null}})();
+function clockText(){var d=new Date();return CLOCK_FMT?CLOCK_FMT.format(d):d.toLocaleString()}
+(function(){var el=document.getElementById('clock');if(el)el.textContent=clockText()})();
 var T0=kstT(), P0=performance.now();
 var DIRS=['북','북동','동','남동','남','남서','서','북서'];
 function bearingName(x,z){var b=Math.atan2(x,-z); if(b<0)b+=Math.PI*2; return DIRS[Math.round(b/(Math.PI/4))%8]}
@@ -1863,7 +1868,7 @@ function frame(now){
   rainSys.update(dt,camera.position,WX.rain,WX.wind,wdx,wdz,light);
 
   // 글자 표시
-  statusT-=dt; if(statusT<=0){statusT=.5;
+  statusT-=dt; if(statusT<=0){statusT=.5; $('clock').textContent=clockText();
     $('status').textContent=day+'일째 · '+(e<0?'밤':e<0.3?'해 질 녘':'낮')+' · '+WX_KIND[WX.kind].name+' · '+(W.seaRising?'밀물':'썰물');
     $('needle').style.transform='rotate('+state.yaw+'rad)'}
   gradeT-=dt; if(gradeT<=0){gradeT=.25;
