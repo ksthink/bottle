@@ -1496,7 +1496,9 @@ function radioPlay(){
   loadHls(function(err){if(!radio.on)return;
     if(err||!window.Hls||!Hls.isSupported()){if(a.canPlayType('application/vnd.apple.mpegurl')){a.onerror=function(){radioFail()};a.src=RADIO_TEST.url;start()}else radioFail('이 브라우저에서는 방송을 들을 수 없습니다.');return}
     var h=radio.hls=new Hls({manifestLoadingMaxRetry:1,levelLoadingMaxRetry:2,fragLoadingMaxRetry:2});
-    h.on(Hls.Events.ERROR,function(e,d){if(d.fatal&&radio.hls===h)radioFail()});
+    h.on(Hls.Events.ERROR,function(e,d){if(!d.fatal||radio.hls!==h)return;h.destroy();radio.hls=null;
+      // hls.js가 안 되면 기본 재생으로라도 튼다(이때는 공간 효과가 빠질 수 있다)
+      if(radio.on&&a.canPlayType('application/vnd.apple.mpegurl')){a.onerror=function(){radioFail()};a.src=RADIO_TEST.url;start()}else radioFail()});
     h.loadSource(RADIO_TEST.url);h.attachMedia(a);start()});
 }
 // ── 소리: 섬의 바다·바람·비 소리와, 라디오 스피커에서 나오는 방송을 공간에 놓는다 ──
