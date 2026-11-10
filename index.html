@@ -242,7 +242,7 @@ sun.shadow.bias=-0.0006; sun.shadow.normalBias=0.5; scene.add(sun); scene.add(su
 var sunBall=new THREE.Mesh(new THREE.SphereGeometry(11,20,14),new THREE.MeshBasicMaterial({color:col(0xffe9b8),fog:false})); scene.add(sunBall);
 
 // 모닥불 빛, 불빛 번짐, 별
-var fireLight=new THREE.PointLight(col(0xff8a3c),0,30,2); scene.add(fireLight);
+var fireLight=new THREE.PointLight(col(0xffa64a),0,30,2); scene.add(fireLight);
 if(!coarse){fireLight.castShadow=true;fireLight.shadow.mapSize.set(512,512);fireLight.shadow.camera.near=.3;fireLight.shadow.camera.far=30;fireLight.shadow.bias=-0.004}
 var GLOW_TEX=(function(){var c=document.createElement('canvas');c.width=c.height=64;var x=c.getContext('2d'),g=x.createRadialGradient(32,32,0,32,32,32);
   g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.25,'rgba(255,255,255,.45)');g.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=g;x.fillRect(0,0,64,64);return new THREE.CanvasTexture(c)})();
@@ -421,7 +421,7 @@ var water, waterFar, waterU;
   '  float rkW=uFlat>0.5?0.:rkF*smoothstep(.42,.6,lace+.28*rkF);col=mix(col,vec3(.9,.95,.93)*(0.4+0.6*uLight),rkW*.7);alpha=max(alpha,rkW*.65);if(uFlat>0.5)alpha=1.;',
   // 모닥불 빛이 물에 번지고 잔물결에 길게 비친다
   '  vec3 Lf=uFireP-vW;float df=length(Lf);Lf/=df;float fat=uFireI*pow(max(1.-df/34.,0.),2.);',
-  '  col+=vec3(1.,.5,.2)*fat*(0.22*max(dot(N,Lf),0.)+pow(max(dot(N,normalize(Lf+V)),0.),50.)*1.6);',
+  '  col+=vec3(1.,.66,.3)*fat*(0.22*max(dot(N,Lf),0.)+pow(max(dot(N,normalize(Lf+V)),0.),50.)*1.6);',
   '  col=mix(col,uFog,smoothstep(170.,640.,distance(cameraPosition,vW)));',
   '  gl_FragColor=vec4(toSRGB(col),alpha);}'].join('\n');
   waterU={uFoot:{value:[0,1,2,3,4,5].map(function(){return new THREE.Vector4(9999,9999,9,0)})},uStorm:{value:0},uRain:{value:0},uOver:{value:0},uSplash:{value:new THREE.Vector4(0,0,0,0)},uMoonDir:{value:new V3(0,1,0)},uMoonI:{value:0},uRocks:{value:[0,1,2,3,4,5,6,7,8,9,10,11].map(function(){return new THREE.Vector4(9999,9999,0,0)})},uFireP:{value:new V3()},uFireI:{value:0},uBig:{value:0},uWind:{value:0},uWindA:{value:0},uTime:{value:0},uSea:{value:0},uR:{value:40},uCalm:{value:1},uFlat:{value:0},uAmp:{value:new THREE.Vector4()},uPh:{value:new THREE.Vector4()},
@@ -1162,15 +1162,15 @@ function buildIsland(seed){
   var fire=new THREE.Group();fire.position.set(2.7,.02,3.3);shelter.add(fire);
   for(var fs0=0;fs0<8;fs0++){var st=add(fire,FIRE_ROCK,M.rock,Math.cos(fs0*.785)*.62,.08,Math.sin(fs0*.785)*.62);st.scale.set(1,.7,1.2);st.rotation.y=fs0}
   add(fire,new THREE.CylinderGeometry(.5,.5,.03,16),ash,0,.02,0);
-  var logM=mat(0x4a4540,{roughness:1,emissive:col(0xff4a10),emissiveIntensity:0});
+  var logM=mat(0x4a4540,{roughness:1,emissive:col(0xff7418),emissiveIntensity:0});
   for(var fl=0;fl<3;fl++){var lg=add(fire,new THREE.CylinderGeometry(.06,.07,.9,8),logM,0,.12,0);lg.rotation.set(Math.PI/2,0,fl*1.05,'ZYX')}
   // 불꽃 세 겹, 번지는 빛, 튀는 불티
-  var flames=[[.3,.9,0xff5a14,.7],[.2,.66,0xffa02e,.8],[.11,.42,0xffe39a,.9]].map(function(q){var gm=new THREE.ConeGeometry(q[0],q[1],12,4,true);gm.translate(0,q[1]/2,0);
+  var flames=[[.3,.9,0xf08a1c,.62],[.2,.66,0xffb23a,.8],[.11,.42,0xfff0c2,.9]].map(function(q){var gm=new THREE.ConeGeometry(q[0],q[1],12,4,true);gm.translate(0,q[1]/2,0);
     var f=new THREE.Mesh(gm,new THREE.MeshBasicMaterial({color:q[2],transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide,fog:false}));
     f.position.y=.1;f.userData.noShadow=true;f.userData.op=q[3];f.renderOrder=5;fire.add(f);return f});
-  var glow=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW_TEX,color:0xff9040,blending:THREE.AdditiveBlending,transparent:true,depthWrite:false,opacity:0,fog:false}));glow.position.y=.55;glow.scale.setScalar(7);glow.renderOrder=6;fire.add(glow);
+  var glow=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW_TEX,color:0xffb04a,blending:THREE.AdditiveBlending,transparent:true,depthWrite:false,opacity:0,fog:false}));glow.position.y=.55;glow.scale.setScalar(7);glow.renderOrder=6;fire.add(glow);
   var spG=new THREE.BufferGeometry();spG.setAttribute('position',new THREE.BufferAttribute(new Float32Array(28*3),3));
-  var sparks=new THREE.Points(spG,new THREE.PointsMaterial({color:0xffb060,size:.07,transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));sparks.frustumCulled=false;sparks.renderOrder=6;fire.add(sparks);
+  var sparks=new THREE.Points(spG,new THREE.PointsMaterial({color:0xffc66a,size:.07,transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));sparks.frustumCulled=false;sparks.renderOrder=6;fire.add(sparks);
   [[-2.0,.24,3.75],[-1.6,.24,3.9],[-1.85,.24,4.15],[-1.8,.6,3.93]].forEach(function(q){add(shelter,new THREE.SphereGeometry(.25,14,12),q[1]>.5?M.bush2:M.nut,q[0],q[1],q[2])});
   shelter.updateMatrixWorld(true);
   var radioPos=new V3(); radio.getWorldPosition(radioPos);
