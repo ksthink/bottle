@@ -188,6 +188,18 @@ if(!window.THREE){ $('fail').hidden=false; return; }
     '  if(n<1.)return s;float dist=(c.z-sum/n)*419.;',
     '  return mix(s,1.,.9*smoothstep(.3,4.,dist));}',
     '#endif'].join('\n')}
+  // 모닥불 그림자: 전체적으로 옅고(최대 45%), 가리는 물체에서 멀어지면 금방 사라진다
+  var PSIG='float getPointShadow( sampler2D shadowMap, vec2 shadowMapSize, float shadowBias, float shadowRadius, vec4 shadowCoord, float shadowCameraNear, float shadowCameraFar ) {';
+  if(C.shadowmap_pars_fragment.indexOf(PSIG)>=0){C.shadowmap_pars_fragment=C.shadowmap_pars_fragment.replace(PSIG,PSIG.replace('getPointShadow(','getPointShadowBase('))+[
+    '\n#ifdef USE_SHADOWMAP',
+    PSIG,
+    '  float s=getPointShadowBase(shadowMap,shadowMapSize,shadowBias,shadowRadius,shadowCoord,shadowCameraNear,shadowCameraFar);if(s>0.999)return s;',
+    '  float ty=1./(shadowMapSize.y*2.);vec3 l2p=shadowCoord.xyz;float rng=shadowCameraFar-shadowCameraNear;float dp=(length(l2p)-shadowCameraNear)/rng+shadowBias;vec3 bd=normalize(l2p);',
+    '  float sum=0.,n=0.;vec2 o=vec2(-1.,1.)*ty*3.;vec3 offs[5];offs[0]=vec3(0.);offs[1]=o.xyy;offs[2]=o.yyx;offs[3]=o.xxy;offs[4]=o.yxx;',
+    '  for(int i=0;i<5;i++){float d=unpackRGBAToDepth(texture2D(shadowMap,cubeToUV(bd+offs[i],ty)));if(d<dp){sum+=d;n+=1.;}}',
+    '  float fade=n<1.?1.:smoothstep(.15,1.6,(dp-sum/n)*rng);',
+    '  return mix(s,1.,max(.55,fade));}',
+    '#endif'].join('\n')}
   C.lights_fragment_end=C.lights_fragment_end+'\n{float rimF=1.0-saturate(dot(geometry.normal,geometry.viewDir));reflectedLight.indirectDiffuse+=diffuseColor.rgb*smoothstep(0.55,0.95,rimF)*0.22;}';
 })();
 
@@ -254,7 +266,7 @@ var sunBall=new THREE.Mesh(new THREE.SphereGeometry(11,20,14),new THREE.MeshBasi
 
 // 모닥불 빛, 불빛 번짐, 별
 var fireLight=new THREE.PointLight(col(0xffa64a),0,30,2); scene.add(fireLight);
-if(!coarse){fireLight.castShadow=true;fireLight.shadow.mapSize.set(512,512);fireLight.shadow.camera.near=.3;fireLight.shadow.camera.far=30;fireLight.shadow.bias=-0.004}
+if(!coarse){fireLight.castShadow=true;fireLight.shadow.mapSize.set(512,512);fireLight.shadow.camera.near=.3;fireLight.shadow.camera.far=30;fireLight.shadow.bias=-0.004;fireLight.shadow.radius=4}
 var GLOW_TEX=(function(){var c=document.createElement('canvas');c.width=c.height=64;var x=c.getContext('2d'),g=x.createRadialGradient(32,32,0,32,32,32);
   g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.25,'rgba(255,255,255,.45)');g.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=g;x.fillRect(0,0,64,64);return new THREE.CanvasTexture(c)})();
 // 밤하늘: 밝은 별은 실제 적경·적위와 밝기로 놓아 별자리 모양이 그대로 보이게 하고, 은하수는 은하 좌표로 그린다. 섬은 북위 24도쯤에 있다고 본다
