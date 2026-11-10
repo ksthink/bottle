@@ -188,17 +188,19 @@ if(!window.THREE){ $('fail').hidden=false; return; }
     '  if(n<1.)return s;float dist=(c.z-sum/n)*419.;',
     '  return mix(s,1.,.9*smoothstep(.3,4.,dist));}',
     '#endif'].join('\n')}
-  // 모닥불 그림자: 전체적으로 옅고(최대 45%), 가리는 물체에서 멀어지면 금방 사라진다
+  // 모닥불 그림자: 옅게(최대 25%), 넓게 번지는 부드러운 모양, 가리는 물체에서 멀어지면 사라진다
   var PSIG='float getPointShadow( sampler2D shadowMap, vec2 shadowMapSize, float shadowBias, float shadowRadius, vec4 shadowCoord, float shadowCameraNear, float shadowCameraFar ) {';
   if(C.shadowmap_pars_fragment.indexOf(PSIG)>=0){C.shadowmap_pars_fragment=C.shadowmap_pars_fragment.replace(PSIG,PSIG.replace('getPointShadow(','getPointShadowBase('))+[
     '\n#ifdef USE_SHADOWMAP',
     PSIG,
-    '  float s=getPointShadowBase(shadowMap,shadowMapSize,shadowBias,shadowRadius,shadowCoord,shadowCameraNear,shadowCameraFar);if(s>0.999)return s;',
     '  float ty=1./(shadowMapSize.y*2.);vec3 l2p=shadowCoord.xyz;float rng=shadowCameraFar-shadowCameraNear;float dp=(length(l2p)-shadowCameraNear)/rng+shadowBias;vec3 bd=normalize(l2p);',
-    '  float sum=0.,n=0.;vec2 o=vec2(-1.,1.)*ty*3.;vec3 offs[5];offs[0]=vec3(0.);offs[1]=o.xyy;offs[2]=o.yyx;offs[3]=o.xxy;offs[4]=o.yxx;',
-    '  for(int i=0;i<5;i++){float d=unpackRGBAToDepth(texture2D(shadowMap,cubeToUV(bd+offs[i],ty)));if(d<dp){sum+=d;n+=1.;}}',
-    '  float fade=n<1.?1.:smoothstep(.15,1.6,(dp-sum/n)*rng);',
-    '  return mix(s,1.,max(.55,fade));}',
+    '  vec3 t1=normalize(cross(bd,abs(bd.y)<.95?vec3(0.,1.,0.):vec3(1.,0.,0.)));vec3 t2=cross(bd,t1);',
+    '  float sum=0.,n=0.,lit=0.;',
+    '  for(int i=0;i<16;i++){float fi=float(i);float r=sqrt((fi+.5)/16.);float an=fi*2.39996;vec3 dv=bd+(t1*cos(an)+t2*sin(an))*r*ty*14.;',
+    '    float d=unpackRGBAToDepth(texture2D(shadowMap,cubeToUV(dv,ty)));if(d<dp){sum+=d;n+=1.;}else lit+=1.;}',
+    '  if(n<1.)return 1.;float s=lit/16.;s=smoothstep(0.,1.,s);',
+    '  float fade=smoothstep(.1,1.4,(dp-sum/n)*rng);',
+    '  return mix(s,1.,max(.75,fade));}',
     '#endif'].join('\n')}
   C.lights_fragment_end=C.lights_fragment_end+'\n{float rimF=1.0-saturate(dot(geometry.normal,geometry.viewDir));reflectedLight.indirectDiffuse+=diffuseColor.rgb*smoothstep(0.55,0.95,rimF)*0.22;}';
 })();
