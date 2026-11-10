@@ -219,7 +219,7 @@ var RULES=[
   '선반이 가득 찬 동안에는 바다가 아무것도 보내지 않습니다. 저는 그걸 모르고 오랫동안 빈 해변만 걸었습니다.',
   '한 칸이라도 비어 있으면 이레 안에 병 하나는 옵니다. 더 일찍 올 때도 있지만 이레를 넘긴 적은 없었습니다.',
   '조용히 지내고 싶으면 세 개를 그대로 두면 됩니다. 바깥이 궁금해지면 하나를 써서 보내세요.'],
- ['라디오는 해가 있을 때만 켜집니다. 흐린 날과 밤에는 잡음뿐입니다. 들리는 것은 날씨와 물때 이야기가 전부인데, 그게 쓸모가 있습니다.',
+ ['라디오는 언제든 켜집니다. 음악도 나오고, 날씨와 물때 이야기도 나옵니다. 물때 이야기는 생각보다 쓸모가 있습니다.',
   '병은 파도와 물때와 바람을 따라 오기 때문에 매번 다른 곳에 닿습니다. 큰 바람이 지나간 다음 날에는 평소 가지 않던 쪽 해변도 걸어보세요. 도착한 병을 오래 찾지 못하면 밀물이 다시 가져가서 다른 섬으로 보냅니다.',
   '두 가지만 더 적습니다. 편지에 이름이나 사는 곳, 연락할 방법은 적지 마세요. 그런 글은 병에 들어가지 않습니다. 그리고 받은 편지가 누군가를 해치려는 글이라면 병째 바다에 가라앉히세요. 가라앉은 편지는 다시 떠오르지 않습니다.']
 ];
@@ -1488,17 +1488,15 @@ function radioPlay(){
     h.loadSource(RADIO_TEST.url);h.attachMedia(a);start()});
 }
 function listenRadio(){
-  var day=Math.floor(state.t/DAY)+1, e=sunE(), body;
-  if(e<0.05) body='<p class="note" style="color:var(--paper-muted)">해가 져서 날씨 방송은 쉽니다.</p>';
-  else if(isCloudy(day)) body='<p class="note" style="color:var(--paper-muted)">구름이 두꺼워 날씨 방송이 잘 잡히지 않습니다.</p>';
-  else{
+  var day=Math.floor(state.t/DAY)+1, body;
+  {
     var wa=windAngle(day), to=bearingName(Math.cos(wa),Math.sin(wa)), from=bearingName(-Math.cos(wa),-Math.sin(wa));
     body='<p>'+day+'일째 방송입니다. 날씨는 '+WX_KIND[WX.kind].name+'입니다. '+from+'풍이 불고, 물결은 '+to+'쪽 해변으로 밉니다. 지금은 '+(W.seaRising?'밀물':'썰물')+'입니다.</p>';
     if(hash2(day,21,W.seed)>0.55) body+='<p>바람이 셉니다. 큰 파도가 간간이 칩니다.</p>';
     if(state.beach.length){var b=state.beach[0];body+='<p>지난 물때에는 물결이 '+bearingName(b.x,b.z)+'쪽 해변으로 밀었습니다.</p>'}
     else if(state.bottles>=3) body+='<p>가까운 바다에 떠다니는 것은 없습니다.</p>';
   }
-  openSheet('<p class="tag">태양열 라디오</p>'+body+'<div class="btns"><button id="rplay" type="button" class="rch" aria-pressed="false"></button></div><p class="rstat" id="rstat" aria-live="polite"></p>'+
+  openSheet('<p class="tag">라디오</p>'+body+'<div class="btns"><button id="rplay" type="button" class="rch" aria-pressed="false"></button></div><p class="rstat" id="rstat" aria-live="polite"></p>'+
     '<div class="btns"><button id="rclose" type="button" class="primary">닫기</button></div>','radio');
   updRadioBtn();radioStatus(radio.on?RADIO_TEST.name+' 듣는 중 · 닫아도 계속 나옵니다.':'');
   $('rplay').onclick=function(){if(radio.on){radioStop();radioStatus('')}else radioPlay()};
