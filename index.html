@@ -177,6 +177,17 @@ if(!window.THREE){ $('fail').hidden=false; return; }
 (function(){var C=THREE.ShaderChunk;
   for(var k in C){if(typeof C[k]==='string'&&C[k].indexOf('vec3 irradiance = dotNL * directLight.color;')>=0)
     C[k]=C[k].split('vec3 irradiance = dotNL * directLight.color;').join('vec3 irradiance = ( smoothstep( 0.0, 0.14, dotNL ) * 0.74 + dotNL * 0.26 ) * directLight.color;')}
+  // 그림자: 가리는 물체에서 멀어질수록 옅어져 끝이 서서히 흐려진다 (해 그림자 깊이 범위 419)
+  var SIG='float getShadow( sampler2D shadowMap, vec2 shadowMapSize, float shadowBias, float shadowRadius, vec4 shadowCoord ) {';
+  if(C.shadowmap_pars_fragment.indexOf(SIG)>=0){C.shadowmap_pars_fragment=C.shadowmap_pars_fragment.replace(SIG,SIG.replace('getShadow(','getShadowBase('))+[
+    '\n#ifdef USE_SHADOWMAP',
+    'float getShadow( sampler2D shadowMap, vec2 shadowMapSize, float shadowBias, float shadowRadius, vec4 shadowCoord ) {',
+    '  float s=getShadowBase(shadowMap,shadowMapSize,shadowBias,shadowRadius,shadowCoord);if(s>0.999)return s;',
+    '  vec3 c=shadowCoord.xyz/shadowCoord.w;c.z+=shadowBias;vec2 tx=3./shadowMapSize;float sum=0.,n=0.;',
+    '  for(int i=-2;i<=2;i++)for(int j=-2;j<=2;j++){float d=unpackRGBAToDepth(texture2D(shadowMap,c.xy+vec2(float(i),float(j))*tx));if(d<c.z){sum+=d;n+=1.;}}',
+    '  if(n<1.)return s;float dist=(c.z-sum/n)*419.;',
+    '  return mix(s,1.,.9*smoothstep(.3,4.,dist));}',
+    '#endif'].join('\n')}
   C.lights_fragment_end=C.lights_fragment_end+'\n{float rimF=1.0-saturate(dot(geometry.normal,geometry.viewDir));reflectedLight.indirectDiffuse+=diffuseColor.rgb*smoothstep(0.55,0.95,rimF)*0.22;}';
 })();
 
@@ -1730,7 +1741,7 @@ function frame(now){
   hemi.intensity=0.15+0.45*light; hemi.color.copy(HEMI_N).lerp(HEMI_D,light); sun.intensity=(.72*(1-.82*WX.dark))*light+(1-light)*.2*(1-WX.cover*.85); hemi.intensity*=1-.4*WX.dark; hemi.intensity+=WX.flash*1.8;
   var sa=(t/DAY%1)*Math.PI*2;
   var mA=sa+Math.PI; moonDir.set(Math.cos(mA)*.75,Math.sin(mA)*.8+.12,.5).normalize(); sunDirV.set(Math.cos(sa)*90,Math.max(e,0.08)*110+25,55).normalize();
-  var dayK=smoothstep(.15,.45,light); tmpV.copy(moonDir).lerp(sunDirV,dayK).normalize(); sun.color.copy(MOON_C).lerp(SUN_C,dayK);
+  var dayK=smoothstep(.15,.45,light); tmpV.copy(moonDir).lerp(sunDirV,dayK).normalize(); if(tmpV.y<.62){var hl=Math.hypot(tmpV.x,tmpV.z)||1,hk=Math.sqrt(1-.62*.62)/hl;tmpV.x*=hk;tmpV.z*=hk;tmpV.y=.62} // 해·달이 낮아도 그림자는 키의 1.3배 안쪽 sun.color.copy(MOON_C).lerp(SUN_C,dayK);
   sun.target.position.copy(who.position); sun.position.copy(who.position).addScaledVector(tmpV,135);
   // 색온도: 맑은 낮은 살짝 따뜻하게, 해 질 녘은 주황빛, 흐리거나 비가 오면 차가운 회청색, 밤은 푸르게
   tmpC2.copy(SUN_C).lerp(C_DUSKSUN,dusk*.8*(1-WX.dark)).lerp(C_OVSUN,WX.cover*.6).lerp(C_STSUN,WX.dark*.9); sun.color.copy(MOON_C).lerp(tmpC2,dayK);
