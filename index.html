@@ -141,7 +141,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
       </div>
       <div class="panel help">
         <b>땅을 누르면 걷고, 끌면 둘러봅니다.</b> 방향키와 휠도 됩니다.<br>
-        시연이라 하루가 6분으로 흐르고, 편지는 어디에도 저장되지 않습니다.
+        섬의 시간은 한국 시간에 맞춰 흐르고, 편지는 어디에도 저장되지 않습니다.
       </div>
     </div>
   </div>
@@ -209,7 +209,10 @@ function clamp(v,a,b){return v<a?a:v>b?b:v}
 function lerp(a,b,t){return a+(b-a)*t}
 function smoothstep(a,b,x){var t=clamp((x-a)/(b-a),0,1);return t*t*(3-2*t)}
 
-var DAY=360;                // 시연: 하루 = 6분
+var DAY=86400;              // 실제 하루 (한국 시간 기준)
+// state.t = 오늘(KST) 06:00부터 흐른 초. 해 위상 0 = 06:00, .25 = 12:00, .5 = 18:00, .75 = 00:00
+function kstT(){var s=((Date.now()/1000+9*3600)%86400+86400)%86400;return (s-6*3600+86400)%86400}
+var T0=kstT(), P0=performance.now();
 var DIRS=['북','북동','동','남동','남','남서','서','북서'];
 function bearingName(x,z){var b=Math.atan2(x,-z); if(b<0)b+=Math.PI*2; return DIRS[Math.round(b/(Math.PI/4))%8]}
 
@@ -435,7 +438,8 @@ var WX_KIND={clear:{name:'맑음',cover:.34,dark:0,rain:0,wind:.18,storm:0,dur:[
   shower:{name:'소나기',cover:.9,dark:.58,rain:.9,wind:.55,storm:.25,dur:[28,45]},storm:{name:'폭풍우',cover:1,dark:.82,rain:1,wind:1,storm:1,dur:[60,100]}};
 var WX_ORDER=['clear','cloudy','drizzle','rain','shower','storm'];
 var WX={kind:'clear',cover:.34,dark:0,rain:0,wind:.18,storm:0,next:70,flash:0,boltT:0,nextBolt:0,gust:0};
-function setWeather(k,t){WX.kind=k;var d=WX_KIND[k].dur;WX.next=t+d[0]+Math.random()*(d[1]-d[0])}
+var WX_SCALE=20; // 실제 시간에 맞춰 날씨 지속시간을 늘림 (맑음 30~50분, 소나기 10~15분)
+function setWeather(k,t){WX.kind=k;var d=WX_KIND[k].dur;WX.next=t+(d[0]+Math.random()*(d[1]-d[0]))*WX_SCALE}
 function nextWeatherKind(){var cur=WX.kind,r=Math.random();
   if(cur==='shower')return r<.6?'cloudy':'clear';
   if(cur==='storm')return r<.6?'rain':'cloudy';
@@ -1321,8 +1325,8 @@ function buildIsland(seed){
   W={seed:seed,R:R,height:height,shore:shore,radiusAt:radiusAt,terrain:terrain,who:who,P:P,marker:marker,shelfBottles:shelfBottles,radioPos:radioPos,shelterAngle:ths,sea:0,seaRising:true,
      N:N,rad:rad,cs:cs,sn:sn,wetS:wetS,patches:patches,crabs:crabs,gulls:gulls,chicks:chicks,nest:nest,whale:{m:WHALE,active:false,next:45+rng()*30,NB:420,pi:0,pool:Array.from({length:420},function(){return {l:1}})},seats:seats,shelter:shelter,trees:treeObjs.concat(treeTrunks),stick:stick,stickTip:stickTip,sandAreas:[],handLog:handLog,flyLog:flyLog,fire:{pos:firePos,flames:flames,glow:glow,sparks:sparks,logM:logM},prints:prints,swash:new Float32Array(N+1),wet:new Float32Array(N+1).fill(-1)};
 
-  state={t:0.08*DAY,bottles:1,sent:0,beach:[],flying:[],nextAt:null,nextLetter:0,sampleOrder:shuffle(SAMPLES.length,rng),reported:{},target:null,
-         yaw:Math.atan2(Math.cos(ths),Math.sin(ths))+.5,pitch:.42,dist:21,walk:0,throwT:0,fire:0,sit:'none',sitK:0,sitFire:false,sitBase:null,seatTarget:null,woodT:6,woodA:-1,released:false,boost:0,bigT0:0.08*DAY+9,wx:Math.cos(windAngle(1)),wz:Math.sin(windAngle(1)),wnd:hash2(1,21,seed),prints:[],printI:0,stepD:0,foot:1,rng:rng,firstRead:false};
+  state={t:T0,bottles:1,sent:0,beach:[],flying:[],nextAt:null,nextLetter:0,sampleOrder:shuffle(SAMPLES.length,rng),reported:{},target:null,
+         yaw:Math.atan2(Math.cos(ths),Math.sin(ths))+.5,pitch:.42,dist:21,walk:0,throwT:0,fire:0,sit:'none',sitK:0,sitFire:false,sitBase:null,seatTarget:null,woodT:6,woodA:-1,released:false,boost:0,bigT0:T0+9,wx:Math.cos(windAngle(1)),wz:Math.sin(windAngle(1)),wnd:hash2(1,21,seed),prints:[],printI:0,stepD:0,foot:1,rng:rng,firstRead:false};
   // 첫 편지는 이미 해변에 닿아 있다
   addBeachBottle({kind:'rule',idx:0},ths+0.55,true);
   state.nextLetter=1;
@@ -1701,7 +1705,7 @@ if(window.ResizeObserver)new ResizeObserver(resize).observe(canvas);window.addEv
 var gradeT=0, last=performance.now(), statusT=0, calm=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches?0.35:1;
 function frame(now){
   requestAnimationFrame(frame);
-  var dt=Math.min(0.05,(now-last)/1000); last=now; state.t+=dt;
+  var dt=Math.min(0.05,(now-last)/1000); last=now; state.t=T0+(now-P0)/1000;
   var t=state.t, day=Math.floor(t/DAY)+1, e=sunE(), cloudy=isCloudy(day), who=W.who, P=W.P;
 
   // 하늘과 빛
