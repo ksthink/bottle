@@ -102,6 +102,14 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .writebar .wbtns{display:flex;gap:6px}
 #wgo{background:var(--fg);color:var(--ink);border-color:transparent}
 @media (max-width:520px){ .help{display:none} .title{font-size:15px} }
+/* 모바일: 시계와 편지 쓰기·앉기·모래글쓰기·소리 끄기만 남긴다 (상황 버튼과 짧은 알림은 그대로) */
+@media (max-width:640px), (pointer:coarse) and (max-height:520px){
+  .title,.status,.help,.shelfnote,#slots,.seedbox .compass,.seedbox > div,#reroll,#saver,#wxbtn{display:none}
+  .clock{margin-top:0;font-size:13px}
+  .hud .panel{padding:6px 10px}
+  .seedbox{gap:6px}
+  .shelf{display:flex;gap:6px;flex-wrap:wrap}
+}
 </style>
 </head>
 <body>
