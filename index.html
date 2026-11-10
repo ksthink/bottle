@@ -1544,7 +1544,8 @@ function loadSfx(){var c=AU.ctx;AU.sfx={};SFX_NAMES.forEach(function(n){AU.sfx[n
 function sfx(name,x,y,z,vol,rate,ref){if(!AU||!soundOn||!AU.sfx)return null;var L=AU.sfx[name];if(!L||!L.length)return null;var c=AU.ctx;
   var sc=c.createBufferSource();sc.buffer=L[Math.floor(Math.random()*L.length)];sc.playbackRate.value=rate||(.94+Math.random()*.12);
   var g=AU.gain(vol==null?.7:vol);sc.connect(g);
-  if(x!=null){var pn=AU.pan(ref||2,1.1);placeNode(pn,x,y||0,z,c.currentTime);g.connect(pn);pn.connect(AU.master)}else g.connect(AU.master);
+  if(c.state!=='running')c.resume();
+  if(x!=null){var pn=AU.pan(ref||2,1.1);if(pn.positionX){pn.positionX.value=x;pn.positionY.value=y||0;pn.positionZ.value=z}else pn.setPosition(x,y||0,z);g.connect(pn);pn.connect(AU.master)}else g.connect(AU.master);
   sc.start();return sc}
 function stepSfx(x,z){if(!AU)return;var dp=waterDepth(x,z),h=W.height(x,z),fp=W.fire.pos,name;
   if(dp>.025)name='step_water';else if(W.swash[binOf(x,z)]+.3>h)name='step_wet';else if(h>1.15&&Math.hypot(x-fp.x,z-fp.z)>6)name='step_grass';else name='step_sand';
@@ -1594,8 +1595,18 @@ function updAudio(dt,t){
     setP(AU.radio.g.gain,.9*(1-.3*WX.wind*(.5+.5*Math.sin(t*1.7)*Math.sin(t*.63+.4))),ct,.15)}
 }
 function setSound(on){soundOn=on;var b=$('sndbtn');if(b){b.textContent=on?'소리 끄기':'소리 켜기';b.setAttribute('aria-pressed',String(on))}if(AU)setP(AU.master.gain,on?1:0,AU.ctx.currentTime,.08)}
-function audioKick(){initAudio();window.removeEventListener('pointerdown',audioKick,true);window.removeEventListener('keydown',audioKick,true)}
-window.addEventListener('pointerdown',audioKick,true);window.addEventListener('keydown',audioKick,true);
+// 브라우저는 사용자의 탭·클릭 안에서만 소리를 켜 준다. iOS 사파리는 pointerdown이 아니라 touchend·click에서만 허락하므로
+// 여러 입력에서 시도하고, 실제로 켜질 때까지 리스너를 남겨 둔다. 무음 스위치가 켜져 있어도 들리도록 재생 세션으로 둔다.
+var AUDIO_EVTS=['pointerdown','pointerup','touchend','click','keydown'];
+function audioKick(){
+  try{if(navigator.audioSession)navigator.audioSession.type='playback'}catch(e){}
+  var A=initAudio();if(!A)return;var c=A.ctx;
+  if(!A.unlocked){A.unlocked=true;try{var sb=c.createBufferSource();sb.buffer=c.createBuffer(1,1,22050);sb.connect(c.destination);sb.start(0)}catch(e){}}
+  var p=c.state!=='running'?c.resume():null;
+  var done=function(){if(c.state==='running')AUDIO_EVTS.forEach(function(ev){window.removeEventListener(ev,audioKick,true)})};
+  if(p&&p.then)p.then(done,function(){});else done()}
+AUDIO_EVTS.forEach(function(ev){window.addEventListener(ev,audioKick,true)});
+document.addEventListener('visibilitychange',function(){if(!document.hidden&&AU&&AU.ctx.state!=='running')AU.ctx.resume()});
 function listenRadio(){
   var day=Math.floor(state.t/DAY)+1, body;
   {
