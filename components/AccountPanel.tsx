@@ -7,6 +7,10 @@ import { supabase } from '@/lib/supabase';
 
 type View = 'closed' | 'guest' | 'signup' | 'code' | 'setpw' | 'login' | 'forgot' | 'member' | 'recovery' | 'welcome';
 
+// 메일 템플릿에 6자리 코드({{ .Token }})를 넣었을 때만 코드 입력칸을 보여준다.
+// 기본 메일 서버를 쓰는 동안은 템플릿을 고칠 수 없어 링크만 온다. SMTP 연결 뒤 NEXT_PUBLIC_EMAIL_CODE=1
+const EMAIL_CODE = process.env.NEXT_PUBLIC_EMAIL_CODE === '1';
+
 // 비밀번호를 정해야 끝나는 화면은 Esc로 닫지 않는다
 const locked = (v: View) => v === 'recovery' || v === 'setpw';
 
@@ -183,11 +187,15 @@ export default function AccountPanel() {
               {view === 'code' && (
                 <Form onSubmit={confirm} title="메일을 확인해 주세요" tag="가입" err={err} note={note}>
                   <p>{email}로 확인 메일을 보냈습니다. 메일의 링크를 누르면 이 섬으로 돌아와 비밀번호를 정합니다.</p>
-                  <p className="note">메일에 6자리 코드가 적혀 있다면 여기에 넣어도 됩니다.</p>
-                  <Field id="su-code" label="코드" value={code} onChange={setCode} autoComplete="one-time-code" inputMode="numeric" />
+                  {EMAIL_CODE && (
+                    <>
+                      <p className="note">메일에 적힌 6자리 코드를 여기에 넣어도 됩니다.</p>
+                      <Field id="su-code" label="코드" value={code} onChange={setCode} autoComplete="one-time-code" inputMode="numeric" />
+                    </>
+                  )}
                   <div className="btns">
-                    <button type="submit" className="primary" aria-busy={busy}>코드로 확인</button>
-                    <button type="button" onClick={resend} aria-busy={busy}>메일 다시 받기</button>
+                    {EMAIL_CODE && <button type="submit" className="primary" aria-busy={busy}>코드로 확인</button>}
+                    <button type="button" className={EMAIL_CODE ? undefined : 'primary'} onClick={resend} aria-busy={busy}>메일 다시 받기</button>
                     <button type="button" onClick={() => go('signup')}>이메일 고치기</button>
                   </div>
                 </Form>
