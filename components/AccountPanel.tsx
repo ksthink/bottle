@@ -2,10 +2,13 @@
 
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
-import { authMessage, getAccount, type Account } from '@/lib/account';
+import { authMessage, getAccount, pending, type Account } from '@/lib/account';
 import { supabase } from '@/lib/supabase';
 
-type View = 'closed' | 'guest' | 'signup' | 'code' | 'login' | 'forgot' | 'member' | 'recovery' | 'welcome';
+type View = 'closed' | 'guest' | 'signup' | 'code' | 'setpw' | 'login' | 'forgot' | 'member' | 'recovery' | 'welcome';
+
+// 비밀번호를 정해야 끝나는 화면은 Esc로 닫지 않는다
+const locked = (v: View) => v === 'recovery' || v === 'setpw';
 
 // 오른쪽 위의 계정 버튼과, 누르면 열리는 가입·로그인 종이.
 // 섬 엔진과 따로 돈다. 키 입력은 여기서 막아 캐릭터가 움직이지 않게 한다.
@@ -25,12 +28,17 @@ export default function AccountPanel() {
     getAccount().then((a) => {
       setAcct(a);
       if (a.recovery) setView('recovery');
+      else if (a.needPassword) setView('setpw');
+      else if (a.linkError) {
+        setErr('메일의 링크가 만료되었거나 이미 쓰였습니다. 다시 가입해 주세요.');
+        setView('guest');
+      }
     });
   }, []);
 
   // 포커스가 창 밖(문서 본문)에 있을 때의 Esc
   useEffect(() => {
-    if (view === 'closed' || view === 'recovery') return;
+    if (view === 'closed' || locked(view)) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setView('closed');
     };
@@ -63,37 +71,48 @@ export default function AccountPanel() {
     }
   };
 
-  // 가입: 지금의 익명 계정에 이메일을 붙인다. 이메일 인증이 끝나야 비밀번호를 정할 수 있어서
-  // 메일로 받은 코드를 이 화면에서 바로 넣게 하고, 코드가 맞으면 이어서 비밀번호를 정한다.
+  // 가입: 지금의 익명 계정에 이메일을 붙인다. Supabase는 이메일 인증이 끝나야 비밀번호를 정하게 하므로
+  // 1) 이메일을 보내고 2) 메일의 링크를 누르거나 6자리 코드를 넣어 인증한 뒤 3) 비밀번호를 정한다.
+  // 링크는 다른 탭이나 기기에서 열릴 수 있어, 이 브라우저에 '비밀번호를 아직 안 정함' 표시를 남긴다.
+  const sendMail = () => sb.auth.updateUser({ email }, { emailRedirectTo: location.origin });
+
   const signup = run(async () => {
-    if (password.length < 8) throw { code: 'weak_password' };
-    const { error } = await sb.auth.updateUser({ email });
+    const { error } = await sendMail();
     if (error) throw error;
+    pending.set();
     go('code');
   });
 
   const confirm = run(async () => {
     const { error } = await sb.auth.verifyOtp({ email, token: code.trim(), type: 'email_change' });
     if (error) throw error;
-    const { error: pwErr } = await sb.auth.updateUser({ password });
-    if (pwErr) throw pwErr;
     setAcct({ ...acct, kind: 'member', email });
-    setPassword('');
     setCode('');
-    go('welcome');
+    go('setpw');
   });
 
   const resend = async () => {
     setErr('');
-    const { error } = await sb.auth.updateUser({ email });
+    const { error } = await sendMail();
     if (error) setErr(authMessage(error));
-    else setNote('코드를 다시 보냈습니다.');
+    else setNote('메일을 다시 보냈습니다.');
   };
+
+  const setpw = run(async () => {
+    if (password.length < 8) throw { code: 'weak_password' };
+    const { error } = await sb.auth.updateUser({ password });
+    if (error) throw error;
+    pending.clear();
+    history.replaceState(null, '', location.pathname);
+    setPassword('');
+    go('welcome');
+  });
 
   // 로그인하면 손님 섬을 떠나 내 섬으로 간다. 섬을 처음부터 다시 그리도록 새로 고친다.
   const login = run(async () => {
     const { error } = await sb.auth.signInWithPassword({ email, password });
     if (error) throw error;
+    pending.clear();
     location.reload();
   });
 
@@ -132,7 +151,7 @@ export default function AccountPanel() {
             onKeyDown={(e) => {
               // 창 안의 키 입력은 섬(캐릭터)으로 보내지 않는다. 그래서 Esc도 여기서 직접 받는다
               e.stopPropagation();
-              if (e.key === 'Escape' && view !== 'recovery') go('closed');
+              if (e.key === 'Escape' && !locked(view)) go('closed');
             }}
             onKeyUp={(e) => e.stopPropagation()}
           >
@@ -153,23 +172,33 @@ export default function AccountPanel() {
               {view === 'signup' && (
                 <Form onSubmit={signup} title="이 섬에 남기" tag="가입" err={err} note={note}>
                   <Field id="su-email" autoFocus label="이메일" type="email" value={email} onChange={setEmail} autoComplete="email" />
-                  <Field id="su-pw" label="비밀번호 (8자 이상)" type="password" value={password} onChange={setPassword} autoComplete="new-password" />
-                  <p className="note">이메일로 6자리 코드를 보냅니다. 이메일은 신고된 편지를 처리할 때만 씁니다.</p>
+                  <p className="note">이 주소로 확인 메일을 보냅니다. 비밀번호는 확인을 마친 뒤 정합니다. 이메일은 신고된 편지를 처리할 때만 씁니다.</p>
                   <div className="btns">
-                    <button type="submit" className="primary" aria-busy={busy}>코드 받기</button>
+                    <button type="submit" className="primary" aria-busy={busy}>확인 메일 받기</button>
                     <button type="button" onClick={() => go('guest')}>뒤로</button>
                   </div>
                 </Form>
               )}
 
               {view === 'code' && (
-                <Form onSubmit={confirm} title="메일로 받은 코드" tag="가입" err={err} note={note}>
-                  <p>{email}로 보낸 6자리 숫자를 넣어 주세요.</p>
-                  <Field id="su-code" autoFocus label="코드" value={code} onChange={setCode} autoComplete="one-time-code" inputMode="numeric" />
+                <Form onSubmit={confirm} title="메일을 확인해 주세요" tag="가입" err={err} note={note}>
+                  <p>{email}로 확인 메일을 보냈습니다. 메일의 링크를 누르면 이 섬으로 돌아와 비밀번호를 정합니다.</p>
+                  <p className="note">메일에 6자리 코드가 적혀 있다면 여기에 넣어도 됩니다.</p>
+                  <Field id="su-code" label="코드" value={code} onChange={setCode} autoComplete="one-time-code" inputMode="numeric" />
+                  <div className="btns">
+                    <button type="submit" className="primary" aria-busy={busy}>코드로 확인</button>
+                    <button type="button" onClick={resend} aria-busy={busy}>메일 다시 받기</button>
+                    <button type="button" onClick={() => go('signup')}>이메일 고치기</button>
+                  </div>
+                </Form>
+              )}
+
+              {view === 'setpw' && (
+                <Form onSubmit={setpw} title="비밀번호를 정해 주세요" tag="가입" err={err} note={note}>
+                  <p>{acct.email} 확인을 마쳤습니다. 다음에 로그인할 때 쓸 비밀번호를 정하면 가입이 끝납니다.</p>
+                  <Field id="sp-pw" autoFocus label="비밀번호 (8자 이상)" type="password" value={password} onChange={setPassword} autoComplete="new-password" />
                   <div className="btns">
                     <button type="submit" className="primary" aria-busy={busy}>가입 마치기</button>
-                    <button type="button" onClick={resend} aria-busy={busy}>코드 다시 받기</button>
-                    <button type="button" onClick={() => go('signup')}>이메일 고치기</button>
                   </div>
                 </Form>
               )}
