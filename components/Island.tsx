@@ -1,12 +1,15 @@
 'use client';
 
 import { useEffect } from 'react';
+import AccountPanel from './AccountPanel';
+import { getAccount } from '@/lib/account';
 
 // 섬 화면의 틀. 내용은 lib/island/game.js 가 id로 찾아 직접 채우고 바꾼다.
 // 이 컴포넌트는 상태가 없어 다시 그려지지 않으므로, React와 엔진이 같은 요소를 두고 다투지 않는다.
 export default function Island() {
   useEffect(() => {
-    import('@/lib/island/game').then((m) => m.startIsland());
+    // 회원은 저장된 섬, 비회원은 이번 접속의 새 섬을 받아 그린다
+    Promise.all([getAccount(), import('@/lib/island/game')]).then(([a, m]) => m.startIsland(a.seed));
   }, []);
 
   return (
@@ -27,9 +30,9 @@ export default function Island() {
               <div className="label">섬 시드</div>
               <div className="num" id="seed">00000</div>
             </div>
-            <button id="reroll" type="button">다른 섬</button>
             <button id="saver" type="button">화면보호</button>
             <button id="wxbtn" type="button">날씨</button>
+            <AccountPanel />
             <button id="sndbtn" type="button" aria-pressed="true">소리 끄기</button>
           </div>
         </div>
