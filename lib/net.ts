@@ -30,9 +30,10 @@ export const net = {
   beach: () => rpc<Beach>('my_beach'),
   open: (id: number) => api<Opened>('/api/open', { id }),
   keep: (id: number) => rpc<number>('keep_bottle', { p_bottle: id }),
-  sink: (id: number) => rpc<number>('sink_bottle', { p_bottle: id }),
+  sink: (id: number) => api<{ held: number }>('/api/sink', { id }).then((r) => r.held),
   throw: (body: string) => api<{ held: number }>('/api/throw', { body }),
   letters: () => rpc<Letters>('my_letters'),
+  withdraw: () => api<{ ok: boolean }>('/api/withdraw', {}),
   message(e: unknown): string {
     switch ((e as Error)?.message) {
       case 'no_bottle':

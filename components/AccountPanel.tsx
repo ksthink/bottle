@@ -3,9 +3,10 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { authMessage, getAccount, pending, type Account } from '@/lib/account';
+import { net } from '@/lib/net';
 import { supabase } from '@/lib/supabase';
 
-type View = 'closed' | 'guest' | 'signup' | 'code' | 'setpw' | 'login' | 'forgot' | 'member' | 'recovery' | 'welcome';
+type View = 'closed' | 'guest' | 'signup' | 'code' | 'setpw' | 'login' | 'forgot' | 'member' | 'withdraw' | 'recovery' | 'welcome';
 
 // 메일 템플릿에 6자리 코드({{ .Token }})를 넣었을 때만 코드 입력칸을 보여준다.
 // 기본 메일 서버를 쓰는 동안은 템플릿을 고칠 수 없어 링크만 온다. SMTP 연결 뒤 NEXT_PUBLIC_EMAIL_CODE=1
@@ -135,6 +136,18 @@ export default function AccountPanel() {
     go('closed');
   });
 
+  // 탈퇴: 보낸 편지를 거둬들이고 계정·섬·받은 편지를 지운다. 되돌릴 수 없다
+  const withdraw = run(async () => {
+    try {
+      await net.withdraw();
+    } catch (e) {
+      throw { message: net.message(e) };
+    }
+    pending.clear();
+    await sb.auth.signOut();
+    location.reload();
+  });
+
   const logout = async () => {
     await sb.auth.signOut();
     location.reload();
@@ -176,7 +189,7 @@ export default function AccountPanel() {
               {view === 'signup' && (
                 <Form onSubmit={signup} title="이 섬에 남기" tag="가입" err={err} note={note}>
                   <Field id="su-email" autoFocus label="이메일" type="email" value={email} onChange={setEmail} autoComplete="email" />
-                  <p className="note">이 주소로 확인 메일을 보냅니다. 비밀번호는 확인을 마친 뒤 정합니다. 이메일은 신고된 편지를 처리할 때만 씁니다.</p>
+                  <p className="note">이 주소로 확인 메일을 보냅니다. 비밀번호는 확인을 마친 뒤 정합니다. 이메일은 신고된 편지를 처리할 때만 씁니다. <a href="/privacy" target="_blank" rel="noopener">개인정보처리방침</a></p>
                   <div className="btns">
                     <button type="submit" className="primary" aria-busy={busy}>확인 메일 받기</button>
                     <button type="button" onClick={() => go('guest')}>뒤로</button>
@@ -261,9 +274,22 @@ export default function AccountPanel() {
                   <p>이 계정의 섬에 머무는 중입니다.</p>
                   <div className="btns">
                     <button type="button" onClick={logout}>로그아웃</button>
+                    <button type="button" onClick={() => go('withdraw')}>탈퇴</button>
                     <button type="button" className="primary" onClick={() => go('closed')}>닫기</button>
                   </div>
+                  <p className="note"><a href="/privacy" target="_blank" rel="noopener">개인정보처리방침</a></p>
                 </>
+              )}
+
+              {view === 'withdraw' && (
+                <Form onSubmit={withdraw} title="섬을 떠납니다" tag="탈퇴" err={err} note={note}>
+                  <p>탈퇴하면 계정과 섬, 가진 병, 받은 편지와 보낸 편지 기록이 모두 지워지고 되돌릴 수 없습니다.</p>
+                  <p>아직 바다를 떠돌거나 해변에서 열리지 않은 내 편지는 거둬들입니다. 이미 누군가 읽은 편지는 그 사람의 편지함에 남습니다.</p>
+                  <div className="btns">
+                    <button type="submit" aria-busy={busy}>탈퇴하기</button>
+                    <button type="button" className="primary" onClick={() => go('member')}>그만두기</button>
+                  </div>
+                </Form>
               )}
             </div>
           </div>,
