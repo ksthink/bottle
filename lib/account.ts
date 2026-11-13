@@ -5,6 +5,8 @@ export type Account = {
   kind: 'member' | 'guest' | 'offline';
   email?: string;
   seed: number;
+  // 섬이 생긴 시각(ms)
+  born?: number;
   // 비밀번호 재설정 메일의 링크를 타고 들어왔는지
   recovery: boolean;
   // 가입 메일의 링크로 가입을 마쳤지만 아직 비밀번호를 정하지 않았는지
@@ -56,6 +58,7 @@ async function open(): Promise<Account> {
       kind: member ? 'member' : 'guest',
       email: user.email ?? undefined,
       seed: island.seed,
+      born: Date.parse(island.created_at),
       recovery,
       needPassword: member && !recovery && (linked || pending.has()),
       linkError,

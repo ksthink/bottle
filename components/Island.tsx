@@ -11,7 +11,7 @@ import { net } from '@/lib/net';
 export default function Island() {
   useEffect(() => {
     // 회원은 저장된 섬, 비회원은 이번 접속의 새 섬을 받아 그린다
-    Promise.all([getAccount(), import('@/lib/island/game')]).then(([a, m]) => m.startIsland(a.seed, a.kind === 'offline' ? null : net));
+    Promise.all([getAccount(), import('@/lib/island/game')]).then(([a, m]) => m.startIsland(a.seed, a.kind === 'offline' ? null : net, a.born));
   }, []);
 
   return (
