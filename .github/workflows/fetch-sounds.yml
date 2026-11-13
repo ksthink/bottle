@@ -1,9 +1,9 @@
-# sounds/fetch.txt에 적힌 ElevenLabs 소리 파일을 내려받아 sounds/에 커밋한다.
+# public/sounds/fetch.txt에 적힌 ElevenLabs 소리 파일을 내려받아 public/sounds/에 커밋한다.
 # 목록의 주소는 서명이 붙어 몇 시간 뒤 만료되므로, 받은 뒤 목록 파일은 지운다.
 name: fetch-sounds
 on:
   push:
-    paths: ["sounds/fetch.txt"]
+    paths: ["public/sounds/fetch.txt"]
   workflow_dispatch:
 permissions:
   contents: write
@@ -15,18 +15,18 @@ jobs:
       - name: Download
         run: |
           set -e
-          [ -f sounds/fetch.txt ] || exit 0
+          [ -f public/sounds/fetch.txt ] || exit 0
           while read -r name url; do
             [ -z "$name" ] && continue
             echo "-> $name"
-            curl -fsSL --retry 3 -o "sounds/$name" "$url"
-          done < sounds/fetch.txt
-          git rm -q sounds/fetch.txt
-          ls -la sounds
+            curl -fsSL --retry 3 -o "public/sounds/$name" "$url"
+          done < public/sounds/fetch.txt
+          git rm -q public/sounds/fetch.txt
+          ls -la public/sounds
       - name: Commit
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add -A sounds
+          git add -A public/sounds
           git commit -m "ElevenLabs 소리 파일 추가" || exit 0
           git push

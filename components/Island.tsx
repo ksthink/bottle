@@ -1,0 +1,86 @@
+'use client';
+
+import { useEffect } from 'react';
+
+// 섬 화면의 틀. 내용은 lib/island/game.js 가 id로 찾아 직접 채우고 바꾼다.
+// 이 컴포넌트는 상태가 없어 다시 그려지지 않으므로, React와 엔진이 같은 요소를 두고 다투지 않는다.
+export default function Island() {
+  useEffect(() => {
+    import('@/lib/island/game').then((m) => m.startIsland());
+  }, []);
+
+  return (
+    <div id="app">
+      <canvas id="scene" tabIndex={0} aria-label="3D 섬. 땅을 누르면 걸어갑니다." />
+      <div id="grade" aria-hidden="true" />
+
+      <div className="hud" id="hud">
+        <div className="row">
+          <div className="panel">
+            <div className="title">유리병 편지 섬</div>
+            <div className="clock" id="clock" />
+            <div className="status" id="status">1일째</div>
+          </div>
+          <div className="panel seedbox">
+            <div className="compass" aria-hidden="true"><i id="needle" /></div>
+            <div>
+              <div className="label">섬 시드</div>
+              <div className="num" id="seed">00000</div>
+            </div>
+            <button id="reroll" type="button">다른 섬</button>
+            <button id="saver" type="button">화면보호</button>
+            <button id="wxbtn" type="button">날씨</button>
+            <button id="sndbtn" type="button" aria-pressed="true">소리 끄기</button>
+          </div>
+        </div>
+
+        <div className="row bottom">
+          <div className="panel shelf">
+            <div className="slots" id="slots" aria-label="가진 병">
+              <span className="slot" /><span className="slot" /><span className="slot" />
+            </div>
+            <button id="write" type="button">편지 쓰기</button>
+            <button id="sit" type="button">앉기</button>
+            <button id="sandw" type="button">모래글쓰기</button>
+            <div className="shelfnote" id="shelfnote" />
+          </div>
+          <div className="center">
+            <div id="toast" className="off" role="status" aria-live="polite" />
+            <button id="action" type="button" hidden>병을 줍는다</button>
+          </div>
+          <div className="panel help">
+            <b>땅을 누르면 걷고, 끌면 둘러봅니다.</b> 방향키와 휠도 됩니다.<br />
+            섬의 시간은 현지 시간에 맞춰 흐르고, 편지는 어디에도 저장되지 않습니다.
+          </div>
+        </div>
+      </div>
+
+      <div className="writebar" id="writebar" hidden>
+        <span>손가락이나 마우스로 모래 위에 글씨를 쓰세요.</span>
+        <div className="wbtns">
+          <button id="wclear" type="button">지우기</button>
+          <button id="wcancel" type="button">그만두기</button>
+          <button id="wgo" type="button">새기기</button>
+        </div>
+      </div>
+      <div className="veil" id="veil" hidden>
+        <div className="sheet" id="sheet" role="dialog" aria-modal="true" tabIndex={-1} />
+      </div>
+      <div id="lock" hidden>
+        <form className="lockbox" id="lockform" autoComplete="off" hidden>
+          <div className="title">잠긴 섬</div>
+          <label htmlFor="lockpin">암호</label>
+          <input id="lockpin" type="password" autoComplete="off" maxLength={20} />
+          <p className="lockerr" id="lockerr" role="alert" />
+          <div className="lockbtns">
+            <button type="submit" id="lockgo">잠금 해제</button>
+            <button type="button" id="lockfs">전체화면으로</button>
+          </div>
+        </form>
+      </div>
+      <div id="fail" hidden>
+        이 기기에서는 3D 화면을 열 수 없습니다. WebGL을 지원하는 브라우저에서 다시 열어 주세요.
+      </div>
+    </div>
+  );
+}

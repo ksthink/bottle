@@ -1,0 +1,28 @@
+{
+  "name": "bottle",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "sounds": "node scripts/sound-manifest.mjs",
+    "predev": "npm run sounds",
+    "dev": "next dev",
+    "prebuild": "npm run sounds",
+    "build": "next build",
+    "start": "next start"
+  },
+  "engines": {
+    "node": ">=20.9"
+  },
+  "dependencies": {
+    "next": "^16.4.6",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "three": "0.128.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "typescript": "^5.9.3"
+  }
+}
