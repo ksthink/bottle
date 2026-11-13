@@ -103,3 +103,4 @@ button:disabled{opacity:.45;cursor:not-allowed}
 }
 .sheet .mail{border-top:1px solid rgba(43,41,34,.18);padding-top:12px;margin-top:12px}
 .sheet .mail .tag{margin-bottom:6px}
+.sheet p{white-space:pre-line}

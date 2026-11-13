@@ -66,7 +66,7 @@ export default function Letterbox() {
                     {'rule' in l && l.rule ? `규칙 편지 ${l.rule} / 3 · ` : ''}
                     {DATE.format(new Date(l.at))}
                   </p>
-                  {l.body.split(/\n{2,}/).map((p, j) => <p key={j}>{p}</p>)}
+                  {l.body.split(/(?:\r?\n){2,}/).map((p, j) => <p key={j}>{p}</p>)}
                 </article>
               ))}
               {tab === 'sent' && list.length > 0 && <p className="note">어디로 갔는지, 읽혔는지는 알 수 없습니다.</p>}
