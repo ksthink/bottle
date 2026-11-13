@@ -101,3 +101,5 @@ button:disabled{opacity:.45;cursor:not-allowed}
   .seedbox{gap:6px}
   .shelf{display:flex;gap:6px;flex-wrap:wrap}
 }
+.sheet .mail{border-top:1px solid rgba(43,41,34,.18);padding-top:12px;margin-top:12px}
+.sheet .mail .tag{margin-bottom:6px}

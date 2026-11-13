@@ -2,14 +2,16 @@
 
 import { useEffect } from 'react';
 import AccountPanel from './AccountPanel';
+import Letterbox from './Letterbox';
 import { getAccount } from '@/lib/account';
+import { net } from '@/lib/net';
 
 // 섬 화면의 틀. 내용은 lib/island/game.js 가 id로 찾아 직접 채우고 바꾼다.
 // 이 컴포넌트는 상태가 없어 다시 그려지지 않으므로, React와 엔진이 같은 요소를 두고 다투지 않는다.
 export default function Island() {
   useEffect(() => {
     // 회원은 저장된 섬, 비회원은 이번 접속의 새 섬을 받아 그린다
-    Promise.all([getAccount(), import('@/lib/island/game')]).then(([a, m]) => m.startIsland(a.seed));
+    Promise.all([getAccount(), import('@/lib/island/game')]).then(([a, m]) => m.startIsland(a.seed, a.kind === 'offline' ? null : net));
   }, []);
 
   return (
@@ -45,6 +47,7 @@ export default function Island() {
             <button id="write" type="button">편지 쓰기</button>
             <button id="sit" type="button">앉기</button>
             <button id="sandw" type="button">모래글쓰기</button>
+            <Letterbox />
             <div className="shelfnote" id="shelfnote" />
           </div>
           <div className="center">
@@ -53,7 +56,7 @@ export default function Island() {
           </div>
           <div className="panel help">
             <b>땅을 누르면 걷고, 끌면 둘러봅니다.</b> 방향키와 휠도 됩니다.<br />
-            섬의 시간은 현지 시간에 맞춰 흐르고, 편지는 어디에도 저장되지 않습니다.
+            섬의 시간은 현지 시간에 맞춰 흐릅니다.
           </div>
         </div>
       </div>
