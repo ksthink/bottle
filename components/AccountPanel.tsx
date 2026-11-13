@@ -28,6 +28,16 @@ export default function AccountPanel() {
     });
   }, []);
 
+  // 포커스가 창 밖(문서 본문)에 있을 때의 Esc
+  useEffect(() => {
+    if (view === 'closed' || view === 'recovery') return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setView('closed');
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [view]);
+
   if (!acct || acct.kind === 'offline' || !supabase) return null;
   const sb = supabase;
 
@@ -40,6 +50,7 @@ export default function AccountPanel() {
   // 오류는 문장으로 바꿔 보여주고, 버튼을 다시 살린다
   const run = (fn: () => Promise<void>) => async (e: FormEvent) => {
     e.preventDefault();
+    if (busy) return;
     setErr('');
     setNote('');
     setBusy(true);
@@ -119,6 +130,7 @@ export default function AccountPanel() {
           <div
             className="veil"
             onKeyDown={(e) => {
+              // 창 안의 키 입력은 섬(캐릭터)으로 보내지 않는다. 그래서 Esc도 여기서 직접 받는다
               e.stopPropagation();
               if (e.key === 'Escape' && view !== 'recovery') go('closed');
             }}
@@ -140,11 +152,11 @@ export default function AccountPanel() {
 
               {view === 'signup' && (
                 <Form onSubmit={signup} title="이 섬에 남기" tag="가입" err={err} note={note}>
-                  <Field id="su-email" label="이메일" type="email" value={email} onChange={setEmail} autoComplete="email" />
+                  <Field id="su-email" autoFocus label="이메일" type="email" value={email} onChange={setEmail} autoComplete="email" />
                   <Field id="su-pw" label="비밀번호 (8자 이상)" type="password" value={password} onChange={setPassword} autoComplete="new-password" />
                   <p className="note">이메일로 6자리 코드를 보냅니다. 이메일은 신고된 편지를 처리할 때만 씁니다.</p>
                   <div className="btns">
-                    <button type="submit" className="primary" disabled={busy}>코드 받기</button>
+                    <button type="submit" className="primary" aria-busy={busy}>코드 받기</button>
                     <button type="button" onClick={() => go('guest')}>뒤로</button>
                   </div>
                 </Form>
@@ -153,10 +165,10 @@ export default function AccountPanel() {
               {view === 'code' && (
                 <Form onSubmit={confirm} title="메일로 받은 코드" tag="가입" err={err} note={note}>
                   <p>{email}로 보낸 6자리 숫자를 넣어 주세요.</p>
-                  <Field id="su-code" label="코드" value={code} onChange={setCode} autoComplete="one-time-code" inputMode="numeric" />
+                  <Field id="su-code" autoFocus label="코드" value={code} onChange={setCode} autoComplete="one-time-code" inputMode="numeric" />
                   <div className="btns">
-                    <button type="submit" className="primary" disabled={busy}>가입 마치기</button>
-                    <button type="button" onClick={resend} disabled={busy}>코드 다시 받기</button>
+                    <button type="submit" className="primary" aria-busy={busy}>가입 마치기</button>
+                    <button type="button" onClick={resend} aria-busy={busy}>코드 다시 받기</button>
                     <button type="button" onClick={() => go('signup')}>이메일 고치기</button>
                   </div>
                 </Form>
@@ -175,11 +187,11 @@ export default function AccountPanel() {
 
               {view === 'login' && (
                 <Form onSubmit={login} title="내 섬으로 돌아가기" tag="로그인" err={err} note={note}>
-                  <Field id="li-email" label="이메일" type="email" value={email} onChange={setEmail} autoComplete="email" />
+                  <Field id="li-email" autoFocus label="이메일" type="email" value={email} onChange={setEmail} autoComplete="email" />
                   <Field id="li-pw" label="비밀번호" type="password" value={password} onChange={setPassword} autoComplete="current-password" />
                   <p className="note">로그인하면 지금 머무는 손님 섬은 사라집니다.</p>
                   <div className="btns">
-                    <button type="submit" className="primary" disabled={busy}>로그인</button>
+                    <button type="submit" className="primary" aria-busy={busy}>로그인</button>
                     <button type="button" onClick={() => go('forgot')}>비밀번호를 잊었어요</button>
                     <button type="button" onClick={() => go('guest')}>뒤로</button>
                   </div>
@@ -188,9 +200,9 @@ export default function AccountPanel() {
 
               {view === 'forgot' && (
                 <Form onSubmit={forgot} title="비밀번호 다시 정하기" tag="로그인" err={err} note={note}>
-                  <Field id="fg-email" label="가입한 이메일" type="email" value={email} onChange={setEmail} autoComplete="email" />
+                  <Field id="fg-email" autoFocus label="가입한 이메일" type="email" value={email} onChange={setEmail} autoComplete="email" />
                   <div className="btns">
-                    <button type="submit" className="primary" disabled={busy}>링크 받기</button>
+                    <button type="submit" className="primary" aria-busy={busy}>링크 받기</button>
                     <button type="button" onClick={() => go('login')}>뒤로</button>
                   </div>
                 </Form>
@@ -198,9 +210,9 @@ export default function AccountPanel() {
 
               {view === 'recovery' && (
                 <Form onSubmit={recover} title="새 비밀번호" tag="로그인" err={err} note={note}>
-                  <Field id="rc-pw" label="새 비밀번호 (8자 이상)" type="password" value={password} onChange={setPassword} autoComplete="new-password" />
+                  <Field id="rc-pw" autoFocus label="새 비밀번호 (8자 이상)" type="password" value={password} onChange={setPassword} autoComplete="new-password" />
                   <div className="btns">
-                    <button type="submit" className="primary" disabled={busy}>정하기</button>
+                    <button type="submit" className="primary" aria-busy={busy}>정하기</button>
                   </div>
                 </Form>
               )}
@@ -244,6 +256,7 @@ function Field(props: {
   type?: string;
   autoComplete?: string;
   inputMode?: 'numeric';
+  autoFocus?: boolean;
 }) {
   return (
     <>
@@ -255,6 +268,7 @@ function Field(props: {
         onChange={(e) => props.onChange(e.target.value)}
         autoComplete={props.autoComplete}
         inputMode={props.inputMode}
+        autoFocus={props.autoFocus}
         required
       />
     </>
