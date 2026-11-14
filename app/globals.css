@@ -289,6 +289,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .sheet.photo .tag{color:var(--muted)}
 .sheet.photo img.photo{display:block;max-width:100%;max-height:min(64vh,40em);margin:0 auto;border-radius:2px;box-shadow:0 10px 28px rgba(0,0,0,.45)}
 .sheet.photo .btns{justify-content:center;margin-top:16px}
+.sheet.photo img.photo{-webkit-touch-callout:default}
 .sheet.photo button,.sheet.photo a.btn{color:var(--fg);background:rgba(243,236,220,.1);border:1px solid var(--panel-line);border-radius:8px;padding:7px 14px;text-decoration:none;font:inherit;cursor:pointer}
-.sheet.photo a.btn.primary{background:var(--fg);color:var(--ink);border-color:transparent}
+.sheet.photo a.btn.primary,.sheet.photo button.btn.primary{background:var(--fg);color:var(--ink);border-color:transparent}
 
