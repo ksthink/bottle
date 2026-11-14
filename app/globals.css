@@ -78,8 +78,16 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .ico-bottle{display:inline-block;width:12px;height:22px;margin-top:6px;border:1.5px solid var(--glass);background:rgba(134,205,176,.35);border-radius:5px 5px 3px 3px;position:relative}
 .ico-bottle::before{content:"";position:absolute;left:50%;top:-7px;width:6px;height:6px;transform:translateX(-50%);background:#b98a55;border-radius:2px 2px 0 0}
 .center{display:flex;flex-direction:column;align-items:center;gap:8px;flex:1 1 200px;min-width:0}
-#action{pointer-events:auto;font-size:16px;padding:10px 18px;background:var(--fg);color:var(--ink);border-color:transparent;font-family:var(--font-ui);font-weight:700}
-#action:hover{background:#fff}
+/* 상황 버튼(편지를 쓴다·라디오를 켠다/끈다): 반투명 유리(글래스모피즘). 뒤 장면을 흐리게 비추고, 얇은 밝은 테두리와 위쪽 하이라이트를 둔다.
+   밝은 모래 위에서도 흰 글씨가 읽히게 유리에 옅은 남색을 깐다 */
+#action{pointer-events:auto;font-size:16px;padding:11px 22px;border-radius:999px;font-family:var(--font-ui);font-weight:700;letter-spacing:.02em;
+  color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.45);
+  background:linear-gradient(180deg,rgba(255,255,255,.24),rgba(255,255,255,.04)),rgba(16,32,42,.3);border:1px solid rgba(255,255,255,.4);
+  backdrop-filter:blur(14px) saturate(160%);-webkit-backdrop-filter:blur(14px) saturate(160%);
+  box-shadow:0 8px 24px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.45),inset 0 -1px 0 rgba(255,255,255,.08);
+  transition:background .2s,transform .12s}
+#action:hover{background:linear-gradient(180deg,rgba(255,255,255,.32),rgba(255,255,255,.1)),rgba(16,32,42,.3)}
+#action:active{transform:scale(.97)}
 #toast{pointer-events:none;max-width:32em;text-align:center;background:var(--panel);border:1px solid var(--panel-line);border-radius:10px;padding:8px 14px;font-size:14px;transition:opacity .4s}
 #toast.off{opacity:0}
 .veil{position:absolute;inset:0;background:rgba(8,18,24,.55);display:flex;align-items:center;justify-content:center;
