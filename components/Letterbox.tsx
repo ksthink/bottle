@@ -42,13 +42,23 @@ export default function Letterbox() {
   const [idx, setIdx] = useState(0);
   const [data, setData] = useState<Letters | null>(null);
   const [err, setErr] = useState('');
+  // 오른쪽 아래 두루마리 옆에 보이는 받은 편지 수
+  const [count, setCount] = useState<number | null>(null);
   const rail = useRef<HTMLUListElement>(null);
   // 창 바깥(어두운 막)에서 눌렀다 뗐을 때만 닫는다
   const downOut = useRef(false);
 
   useEffect(() => {
-    getAccount().then((a) => setMember(a.kind === 'member'));
+    // 받은 편지 수: 처음 한 번, 그리고 해변에서 편지를 열 때마다(game.js가 'bottle-letters'를 알린다) 다시 센다
+    const recount = () => net.letters().then((d) => setCount(d.received.length), () => {});
+    getAccount().then((a) => {
+      const m = a.kind === 'member';
+      setMember(m);
+      if (m) recount();
+    });
     setMode(loadMode());
+    window.addEventListener('bottle-letters', recount);
+    return () => window.removeEventListener('bottle-letters', recount);
   }, []);
 
   useEffect(() => {
@@ -56,7 +66,13 @@ export default function Letterbox() {
     setData(null);
     setErr('');
     setSel(null);
-    net.letters().then(setData, (e) => setErr(net.message(e)));
+    net.letters().then(
+      (d) => {
+        setData(d);
+        setCount(d.received.length);
+      },
+      (e) => setErr(net.message(e)),
+    );
   }, [open]);
 
   // 탭을 바꾸면 처음 편지부터
@@ -103,7 +119,10 @@ export default function Letterbox() {
 
   return (
     <>
-      <button id="mailbtn" type="button" onClick={() => setOpen(true)}>편지함</button>
+      <button id="mailbtn" type="button" className="cnt" title="편지함" aria-label={`편지함 열기${count !== null ? ` (받은 편지 ${count}통)` : ''}`} onClick={() => setOpen(true)}>
+        <i className="ico-scroll" aria-hidden="true" />
+        <b aria-hidden="true">{count ?? '·'}</b>
+      </button>
       {open &&
         root &&
         createPortal(

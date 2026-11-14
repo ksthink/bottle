@@ -56,20 +56,26 @@ button{font:inherit;color:var(--fg);background:rgba(243,236,220,.1);border:1px s
 button:hover{background:rgba(243,236,220,.18)}
 button:focus-visible,textarea:focus-visible{outline:2px solid var(--warn);outline-offset:2px}
 button:disabled{opacity:.45;cursor:not-allowed}
-.shelf{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.slots{display:flex;gap:6px;align-items:flex-end;border-bottom:3px solid #8a6a47;padding:0 6px 2px}
-.slot{width:14px;height:30px;border:1.5px dashed rgba(243,236,220,.35);border-radius:6px 6px 3px 3px;position:relative}
-.slot.full{border:1.5px solid var(--glass);background:rgba(134,205,176,.35)}
-.slot.full::before{content:"";position:absolute;left:50%;top:-7px;width:6px;height:7px;transform:translateX(-50%);background:#b98a55;border-radius:2px 2px 0 0}
-.shelfnote{font-size:12px;color:var(--muted);max-width:22em}
-.shelfnote.full{color:var(--warn)}
+.row.bottom{display:grid;grid-template-columns:1fr minmax(0,34em) 1fr;align-items:end}
+.row.bottom .center{grid-column:2}
+/* 오른쪽 아래 도구 줄: 병·두루마리 아이콘과 개수, 그리고 버튼 셋 */
+.dock{grid-column:3;justify-self:end;display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.dock .cnt{display:inline-flex;align-items:center;gap:6px;padding:4px 6px;font-variant-numeric:tabular-nums;font-size:15px;line-height:1}
+.dock .cnt b{font-weight:400;min-width:.7em}
+.dock #bottles.full b{color:var(--warn)}
+.dock #mailbtn{background:transparent;border-color:transparent;padding:4px 6px}
+.dock #mailbtn:hover{background:rgba(243,236,220,.12)}
+.ico-bottle{display:inline-block;width:12px;height:22px;margin-top:6px;border:1.5px solid var(--glass);background:rgba(134,205,176,.35);border-radius:5px 5px 3px 3px;position:relative}
+.ico-bottle::before{content:"";position:absolute;left:50%;top:-7px;width:6px;height:6px;transform:translateX(-50%);background:#b98a55;border-radius:2px 2px 0 0}
+.ico-scroll{display:inline-block;width:24px;height:16px;border-radius:2px;position:relative;background:linear-gradient(#f4e6c6,#e2cd9f)}
+.ico-scroll::before,.ico-scroll::after{content:"";position:absolute;left:-3px;right:-3px;height:6px;border-radius:3px;background:linear-gradient(#e8c890,#8a6136)}
+.ico-scroll::before{top:-3px}
+.ico-scroll::after{bottom:-3px}
 .center{display:flex;flex-direction:column;align-items:center;gap:8px;flex:1 1 200px;min-width:0}
 #action{pointer-events:auto;font-size:16px;padding:10px 18px;background:var(--fg);color:var(--ink);border-color:transparent;font-family:var(--font-letter);font-weight:700}
 #action:hover{background:#fff}
 #toast{pointer-events:none;max-width:32em;text-align:center;background:var(--panel);border:1px solid var(--panel-line);border-radius:10px;padding:8px 14px;font-size:14px;transition:opacity .4s}
 #toast.off{opacity:0}
-.help{font-size:12px;color:var(--muted);max-width:24em}
-.help b{color:var(--fg);font-weight:400}
 .veil{position:absolute;inset:0;background:rgba(8,18,24,.55);display:flex;align-items:center;justify-content:center;
   padding-block:16px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 .sheet{width:min(34em,100%);max-height:100%;overflow:auto;background:var(--paper);color:var(--paper-ink);border-radius:4px;padding:26px 26px 20px;
@@ -103,14 +109,15 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .writebar{position:absolute;left:50%;top:calc(env(safe-area-inset-top,0px) + 76px);transform:translateX(-50%);width:max-content;max-width:calc(100% - 32px);box-sizing:border-box;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center;background:var(--panel);border:1px solid var(--panel-line);border-radius:10px;padding:8px 12px;font-size:14px;z-index:5}
 .writebar .wbtns{display:flex;gap:6px}
 #wgo{background:var(--fg);color:var(--ink);border-color:transparent}
-@media (max-width:520px){ .help{display:none} .title{font-size:15px} }
-/* 모바일: 시계와 편지 쓰기·앉기·모래글쓰기·설정만 남긴다 (상황 버튼과 짧은 알림은 그대로) */
+@media (max-width:520px){ .title{font-size:15px} }
+/* 모바일: 시계와 오른쪽 아래 도구 줄·설정만 남긴다 (상황 버튼과 짧은 알림은 그대로). 알림 줄 아래에 도구 줄을 둔다 */
 @media (max-width:640px), (pointer:coarse) and (max-height:520px){
-  .title,.status,.help,.shelfnote,#slots,.seedbox > div{display:none}
+  .title,.status,.seedbox > div{display:none}
+  .row.bottom{grid-template-columns:1fr;gap:8px}
+  .row.bottom .center,.dock{grid-column:1}
   .clock{margin-top:0;font-size:13px}
   .hud .panel{padding:6px 10px}
   .seedbox{gap:6px}
-  .shelf{display:flex;gap:6px;flex-wrap:wrap}
 }
 .sheet p{white-space:pre-line}
 .sheet a{color:inherit}

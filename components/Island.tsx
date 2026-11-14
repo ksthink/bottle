@@ -65,23 +65,20 @@ export default function Island() {
         </div>
 
         <div className="row bottom">
-          <div className="panel shelf">
-            <div className="slots" id="slots" aria-label="가진 병">
-              <span className="slot" /><span className="slot" /><span className="slot" />
-            </div>
-            <button id="write" type="button">편지 쓰기</button>
-            <button id="sit" type="button">앉기</button>
-            <button id="sandw" type="button">모래글쓰기</button>
-            <Letterbox />
-            <div className="shelfnote" id="shelfnote" />
-          </div>
           <div className="center">
             <div id="toast" className="off" role="status" aria-live="polite" />
             <button id="action" type="button" hidden>라디오를 켠다</button>
           </div>
-          <div className="panel help">
-            <b>땅을 누르면 걷고, 끌면 둘러봅니다.</b> 방향키와 휠도 됩니다.<br />
-            섬의 시간은 현지 시간에 맞춰 흐릅니다.
+          {/* 오른쪽 아래: 가진 병 수, 받은 편지 수(누르면 편지함), 편지쓰기·모래글·앉기 */}
+          <div className="panel dock">
+            <span className="cnt" id="bottles" role="img" aria-label="가진 병">
+              <i className="ico-bottle" aria-hidden="true" />
+              <b id="bcount" aria-hidden="true">0</b>
+            </span>
+            <Letterbox />
+            <button id="write" type="button">편지쓰기</button>
+            <button id="sandw" type="button">모래글</button>
+            <button id="sit" type="button">앉기</button>
           </div>
         </div>
       </div>
