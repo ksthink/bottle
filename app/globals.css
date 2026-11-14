@@ -1,6 +1,6 @@
 body{margin:0}img{max-width:100%}[hidden]{display:none!important}
 /* 글꼴: 화면 전체는 넥슨 Lv1 고딕, 편지 본문은 심경하체, 화면보호기 시계는 SF함박눈.
-   FONT/의 TTF를 영문·문장부호·한글 음절 11,172자 전부·자모만 남겨 WOFF2로 바꿨다(시계는 영문·숫자만). 다시 만드는 법은 README '글꼴' */
+   font/의 TTF를 영문·문장부호·한글 음절 11,172자 전부·자모만 남겨 WOFF2로 바꿨다(시계는 영문·숫자만). 다시 만드는 법은 README '글꼴' */
 @font-face{font-family:'NEXON Lv1 Gothic';src:url('/fonts/nexon-lv1-gothic.woff2') format('woff2');font-weight:400;font-style:normal;font-display:swap}
 @font-face{font-family:'SimKyungha';src:url('/fonts/sim-kyungha.woff2') format('woff2');font-weight:400;font-style:normal;font-display:swap}
 @font-face{font-family:'SF HambakSnow';src:url('/fonts/sf-hambaksnow.woff2') format('woff2');font-weight:800;font-style:normal;font-display:swap}

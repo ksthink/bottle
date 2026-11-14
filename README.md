@@ -130,13 +130,13 @@ npm run dev     # http://localhost:3000
 | 화면보호기 시계 | SF함박눈 | `public/fonts/sf-hambaksnow.woff2` |
 
 - `app/globals.css`의 `@font-face`와 `--font-ui`, `--font-letter`, `--font-clock`으로 쓴다. 넥슨 Lv1 고딕은 `app/layout.tsx`에서 미리 받는다.
-- 원본 TTF에서 필요한 글자만 남겨 WOFF2로 바꿨다. 넥슨과 심경하체는 영문, 문장부호, 한글 음절 11,172자 전부, 자모를 남기고(한자는 뺐다), 시계 글꼴은 영문과 숫자만 남겼다. 다시 만들려면 원본 TTF를 `FONT/`에 두고:
+- 원본 TTF에서 필요한 글자만 남겨 WOFF2로 바꿨다. 넥슨과 심경하체는 영문, 문장부호, 한글 음절 11,172자 전부, 자모를 남기고(한자는 뺐다), 시계 글꼴은 영문과 숫자만 남겼다. 다시 만들려면 원본 TTF를 `font/`에 두고:
 
 ```sh
 U='U+0020-007E,U+00A0-00FF,U+1100-11FF,U+2010-2027,U+2030-203A,U+20A9,U+2116,U+2122,U+2190-21FF,U+2460-2473,U+25A0-25FF,U+2600-26FF,U+3000-303F,U+3131-318E,U+AC00-D7A3,U+FF01-FF5E'
-pyftsubset FONT/NEXON.ttf  --unicodes="$U" --flavor=woff2 --layout-features='*' --no-hinting --output-file=public/fonts/nexon-lv1-gothic.woff2
-pyftsubset FONT/SIM.ttf    --unicodes="$U" --flavor=woff2 --layout-features='*' --no-hinting --output-file=public/fonts/sim-kyungha.woff2
-pyftsubset FONT/SF_TTF.ttf --unicodes='U+0020-007E' --flavor=woff2 --layout-features='*' --no-hinting --output-file=public/fonts/sf-hambaksnow.woff2
+pyftsubset font/NEXON.ttf  --unicodes="$U" --flavor=woff2 --layout-features='*' --no-hinting --output-file=public/fonts/nexon-lv1-gothic.woff2
+pyftsubset font/SIM.ttf    --unicodes="$U" --flavor=woff2 --layout-features='*' --no-hinting --output-file=public/fonts/sim-kyungha.woff2
+pyftsubset font/SF_TTF.ttf --unicodes='U+0020-007E' --flavor=woff2 --layout-features='*' --no-hinting --output-file=public/fonts/sf-hambaksnow.woff2
 ```
 
 (`pyftsubset`은 `pip install fonttools brotli`로 설치한다.)
