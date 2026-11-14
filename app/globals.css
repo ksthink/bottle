@@ -23,7 +23,9 @@ body{margin:0}img{max-width:100%}[hidden]{display:none!important}
 }
 html,body{height:100%}
 body{background:var(--ink);color:var(--fg);font-family:var(--font-ui);font-size:15px;line-height:1.5;overflow:hidden}
-#app{position:relative;height:100%;overflow:hidden}
+#app{position:relative;height:100%;overflow:hidden;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+/* 섬 화면은 땅을 누르고 끄는 곳이라 글자가 선택되지 않게 한다(모바일에서 탭할 때 HUD 글자가 통째로 선택되던 문제). 편지 본문과 입력칸만 선택할 수 있다 */
+#app input,#app textarea,.sheet.letter p,.scroll-open .paper{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
 #scene{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;outline:none;filter:saturate(1.07) contrast(1.03)}
 #grade{position:absolute;inset:0;pointer-events:none;mix-blend-mode:soft-light;opacity:0;background:#ffb060}
 .hud{position:absolute;inset:0;pointer-events:none;display:flex;flex-direction:column;justify-content:space-between;gap:12px;
