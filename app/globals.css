@@ -56,7 +56,8 @@ button{font:inherit;color:var(--fg);background:rgba(243,236,220,.1);border:1px s
 button:hover{background:rgba(243,236,220,.18)}
 button:focus-visible,textarea:focus-visible{outline:2px solid var(--warn);outline-offset:2px}
 button:disabled{opacity:.45;cursor:not-allowed}
-.row.bottom{display:grid;grid-template-columns:1fr minmax(0,34em) 1fr;align-items:end}
+/* 가운데 알림 칸, 오른쪽 도구 줄. 도구 줄은 한 줄을 지키고(그만큼 자리를 먼저 잡는다) 알림은 남는 가운데에 둔다 */
+.row.bottom{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,32em) minmax(max-content,1fr);align-items:end}
 .row.bottom .center{grid-column:2}
 /* 오른쪽 아래 도구 줄: 병·두루마리 아이콘과 개수, 그리고 버튼 셋 */
 .dock{grid-column:3;justify-self:end;display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
@@ -67,10 +68,6 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .dock #mailbtn:hover{background:rgba(243,236,220,.12)}
 .ico-bottle{display:inline-block;width:12px;height:22px;margin-top:6px;border:1.5px solid var(--glass);background:rgba(134,205,176,.35);border-radius:5px 5px 3px 3px;position:relative}
 .ico-bottle::before{content:"";position:absolute;left:50%;top:-7px;width:6px;height:6px;transform:translateX(-50%);background:#b98a55;border-radius:2px 2px 0 0}
-.ico-scroll{display:inline-block;width:24px;height:16px;border-radius:2px;position:relative;background:linear-gradient(#f4e6c6,#e2cd9f)}
-.ico-scroll::before,.ico-scroll::after{content:"";position:absolute;left:-3px;right:-3px;height:6px;border-radius:3px;background:linear-gradient(#e8c890,#8a6136)}
-.ico-scroll::before{top:-3px}
-.ico-scroll::after{bottom:-3px}
 .center{display:flex;flex-direction:column;align-items:center;gap:8px;flex:1 1 200px;min-width:0}
 #action{pointer-events:auto;font-size:16px;padding:10px 18px;background:var(--fg);color:var(--ink);border-color:transparent;font-family:var(--font-letter);font-weight:700}
 #action:hover{background:#fff}
@@ -154,13 +151,18 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .mbar .cnt{margin-left:6px;font-size:12px;opacity:.7;font-variant-numeric:tabular-nums}
 .mbar .modes button{font-size:13px;padding:5px 10px}
 
-/* 나무 막대: 원통처럼 위아래로 음영을 주고, 양 끝에 손잡이 */
-.roll{display:block;position:relative;height:15px;margin:0 -5px;border-radius:7px;background:linear-gradient(#e8c890,#b98b4e 55%,#7a5530);box-shadow:0 2px 3px rgba(0,0,0,.35);z-index:1}
-.roll::before,.roll::after{content:"";position:absolute;top:-3px;width:9px;height:21px;border-radius:4px;background:linear-gradient(90deg,#5a3b1c,#8e6136 50%,#5a3b1c)}
-.roll::before{left:-7px}
-.roll::after{right:-7px}
+/* 종이 색: 일반 편지는 바랜 양피지, 규칙 편지(.rule)는 흰 종이. p1 밝은 면, p2 바탕, p3 말린 안쪽 그늘 */
+.mailbox,.dock{--p1:#fbf1dc;--p2:#ecdab2;--p3:#b99b66}
+.rule{--p1:#ffffff;--p2:#f1efea;--p3:#bdb8ad}
+/* 말린 종이: 막대 없이 종이 자체가 둥글게 감겨 있다. 위는 빛을 받고 아래로 갈수록 그늘지며, 양 끝은 감긴 단면(소용돌이)이 보인다 */
+.roll{display:block;position:relative;height:15px;margin:0 -2px;border-radius:7px;z-index:1;
+  background:linear-gradient(var(--p1) 0 22%,var(--p2) 55%,var(--p3) 100%);box-shadow:0 2px 3px rgba(0,0,0,.28)}
+.roll::before,.roll::after{content:"";position:absolute;top:0;bottom:0;width:9px;border-radius:50%;
+  background:radial-gradient(closest-side,var(--p3) 0 22%,var(--p1) 30% 46%,var(--p3) 54% 64%,var(--p2) 72%)}
+.roll::before{left:-1px}
+.roll::after{right:-1px}
 /* 종이: 바랜 양피지. 막대 곁은 말려 들어가 그늘진다 */
-.peek,.paper{display:block;background:linear-gradient(90deg,rgba(130,95,40,.14),transparent 10%,transparent 90%,rgba(130,95,40,.14)),linear-gradient(#f4e6c6,#ecdab2);color:var(--paper-ink);font-family:var(--font-letter)}
+.peek,.paper{display:block;background:linear-gradient(90deg,rgba(130,95,40,.12),transparent 10%,transparent 90%,rgba(130,95,40,.12)),linear-gradient(var(--p1),var(--p2));color:var(--paper-ink);font-family:var(--font-letter)}
 
 /* 두루마리 줄: 옆으로 넘겨(스와이프) 고른다. 한 장씩 가운데에 멈춘다 */
 .rail-wrap{display:flex;align-items:center;gap:6px}
@@ -172,7 +174,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .sheet .rolled:hover,.sheet .rolled:focus-visible{transform:rotate(0deg) translateY(-4px)}
 .rolled:focus-visible{outline:2px solid var(--warn);outline-offset:6px}
 .rolled .roll{height:20px;border-radius:10px}
-.rolled .roll::before,.rolled .roll::after{top:-2px;height:24px}
+.rolled .roll::before,.rolled .roll::after{width:12px}
 .peek{height:3.1em;padding:7px 10px;margin:0 3px;font-size:13px;line-height:1.55;text-align:left;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
   box-shadow:inset 0 7px 6px -5px rgba(60,40,10,.45),inset 0 -7px 6px -5px rgba(60,40,10,.45)}
 .rail .when,.mlist .when{font-size:12px;color:var(--muted);white-space:nowrap}
@@ -181,10 +183,10 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .mlist{list-style:none;margin:0;padding:0;max-height:min(55vh,26em);overflow-y:auto;display:flex;flex-direction:column;gap:6px}
 .sheet .mlist button{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:9px 10px;border-radius:8px;border:1px solid var(--panel-line);background:rgba(243,236,220,.05);color:var(--fg);cursor:pointer}
 .sheet .mlist button:hover{background:rgba(243,236,220,.12)}
-.mlist .mini{flex:none;width:30px;height:20px;border-radius:3px;position:relative;background:linear-gradient(#f4e6c6,#e2cd9f)}
-.mlist .mini::before,.mlist .mini::after{content:"";position:absolute;left:-3px;right:-3px;height:7px;border-radius:4px;background:linear-gradient(#e8c890,#8a6136)}
-.mlist .mini::before{top:-3px}
-.mlist .mini::after{bottom:-3px}
+.mlist .mini,.ico-scroll{flex:none;display:inline-block;width:28px;height:18px;position:relative;background:linear-gradient(var(--p1),var(--p2))}
+.mlist .mini::before,.mlist .mini::after,.ico-scroll::before,.ico-scroll::after{content:"";position:absolute;left:-1px;right:-1px;height:7px;border-radius:4px;background:linear-gradient(var(--p1) 0 20%,var(--p2) 55%,var(--p3))}
+.mlist .mini::before,.ico-scroll::before{top:-3px}
+.mlist .mini::after,.ico-scroll::after{bottom:-3px}
 .mlist .ln{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:var(--font-letter)}
 
 /* 펼친 두루마리: 판 없이 두루마리만 떠 있고, 아래 막대가 내려가며 종이가 풀린다. 오른쪽 위 X로 접는다 */

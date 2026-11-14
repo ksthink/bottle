@@ -154,7 +154,7 @@ export default function Letterbox() {
 
               {cur ? (
                 // 펼친 편지: 두루마리(편지 내용)만 보인다. X·바깥·Esc로 접으면 목록으로 돌아간다
-                <div className="scroll-open" key={sel}>
+                <div className={'scroll-open' + (cur.rule ? ' rule' : '')} key={sel}>
                   <h2 id="mail-h" className="sr">{tab === 'received' ? '받은 편지' : '보낸 편지'}</h2>
                   <span className="roll" aria-hidden="true" />
                   <div className="paper" tabIndex={0}>
@@ -199,7 +199,7 @@ export default function Letterbox() {
                         }}
                       >
                         {list.map((l, i) => (
-                          <li key={i} style={{ '--tilt': `${((i * 37) % 7) - 3}deg` } as CSSProperties}>
+                          <li key={i} className={l.rule ? 'rule' : undefined} style={{ '--tilt': `${((i * 37) % 7) - 3}deg` } as CSSProperties}>
                             <button type="button" className="rolled" onClick={() => { setIdx(i); setSel(i); }} aria-label={`${label(l)} 편지 펼치기: ${firstLine(l.body)}`}>
                               <span className="roll" aria-hidden="true" />
                               <span className="peek" aria-hidden="true">{firstLine(l.body)}</span>
@@ -220,7 +220,7 @@ export default function Letterbox() {
                       {list.map((l, i) => (
                         <li key={i}>
                           <button type="button" onClick={() => { setIdx(i); setSel(i); }}>
-                            <span className="mini" aria-hidden="true" />
+                            <span className={'mini' + (l.rule ? ' rule' : '')} aria-hidden="true" />
                             <span className="ln">{firstLine(l.body)}</span>
                             <span className="when">{label(l, true)}</span>
                           </button>
