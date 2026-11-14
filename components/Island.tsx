@@ -22,7 +22,7 @@ export default function Island() {
       <div className="hud" id="hud">
         <div className="row">
           <div className="panel">
-            <div className="title">유리병 편지 섬</div>
+            <div className="title">나홀로섬에</div>
             <div className="clock" id="clock" />
             <div className="status" id="status">1일째</div>
           </div>
@@ -32,11 +32,28 @@ export default function Island() {
               <div className="label">섬 시드</div>
               <div className="num" id="seed">00000</div>
             </div>
-            <button id="saver" type="button">화면보호</button>
-            <button id="wxbtn" type="button">날씨</button>
             <AccountPanel />
-            <button id="sndbtn" type="button" aria-pressed="true">소리 끄기</button>
+            <button id="gear" type="button" aria-label="설정" aria-expanded="false" aria-controls="setpanel">⚙</button>
           </div>
+        </div>
+
+        {/* 설정: 소리(배경음·라디오), 날씨(자동 변경), 화면보호기. 내용은 game.js가 채우고 맞춘다 */}
+        <div className="panel setpanel" id="setpanel" role="dialog" aria-label="설정" hidden>
+          <section>
+            <h3>소리</h3>
+            <label className="tog"><input type="checkbox" id="setbg" defaultChecked /> 배경음</label>
+            <label className="tog"><input type="checkbox" id="setradio" /> 라디오</label>
+          </section>
+          <section>
+            <h3>날씨</h3>
+            <label className="tog"><input type="checkbox" id="setwx" defaultChecked /> 자동 변경</label>
+            <p className="setnote" id="setwxnote" />
+          </section>
+          <section>
+            <h3>화면보호기</h3>
+            <button id="setsaver" type="button">시작</button>
+            <p className="setnote">움직이거나 누르면 돌아옵니다.</p>
+          </section>
         </div>
 
         <div className="row bottom">
@@ -72,18 +89,7 @@ export default function Island() {
       <div className="veil" id="veil" hidden>
         <div className="sheet" id="sheet" role="dialog" aria-modal="true" tabIndex={-1} />
       </div>
-      <div id="lock" hidden>
-        <form className="lockbox" id="lockform" autoComplete="off" hidden>
-          <div className="title">잠긴 섬</div>
-          <label htmlFor="lockpin">암호</label>
-          <input id="lockpin" type="password" autoComplete="off" maxLength={20} />
-          <p className="lockerr" id="lockerr" role="alert" />
-          <div className="lockbtns">
-            <button type="submit" id="lockgo">잠금 해제</button>
-            <button type="button" id="lockfs">전체화면으로</button>
-          </div>
-        </form>
-      </div>
+      <div id="lock" hidden />
       <div id="fail" hidden>
         이 기기에서는 3D 화면을 열 수 없습니다. WebGL을 지원하는 브라우저에서 다시 열어 주세요.
       </div>
