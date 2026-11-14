@@ -97,12 +97,13 @@ export default function Island() {
       </div>
       {/* 화면보호기: 화면을 끌어 시점만 바꿀 수 있고, 아래 버튼으로 끈다 */}
       <div id="lock" hidden>
-        {/* 화면보호기 시계: 왼쪽 위에 오늘 날짜와 시간을 크게. 위의 버튼으로 디지털·아날로그를 고른다(game.js가 채우고 기억한다) */}
+        {/* 화면보호기 시계: 왼쪽 위에 오늘 날짜, 그 아래 시간을 크게. 맨 위의 D|A 토글로 디지털·아날로그를 바꾼다(game.js가 채우고 기억한다) */}
         <div className="sclock">
-          <div className="smode" role="group" aria-label="시계 모양">
-            <button id="sdig" type="button" aria-pressed="true">디지털</button>
-            <button id="sana" type="button" aria-pressed="false">아날로그</button>
-          </div>
+          <button id="sclk" className="stog" type="button" aria-label="시계 모양 바꾸기">
+            <span data-m="digital">D</span>
+            <span data-m="analog">A</span>
+          </button>
+          <div className="sdate" id="sdate" />
           <div id="sdigital">
             <div className="stime"><span id="shm">00:00</span><small id="ssec">00</small></div>
           </div>
@@ -118,7 +119,6 @@ export default function Island() {
               <circle className="pin" cx="100" cy="100" r="4" />
             </svg>
           </div>
-          <div className="sdate" id="sdate" />
         </div>
         <button id="saveroff" type="button">화면보호기 끄기</button>
       </div>
