@@ -43,6 +43,8 @@ export default function Island() {
             <h3>소리</h3>
             <label className="tog"><input type="checkbox" id="setbg" defaultChecked /> 배경음</label>
             <label className="tog"><input type="checkbox" id="setradio" /> 라디오</label>
+            <label className="tog"><input type="checkbox" id="setrsp" defaultChecked /> 라디오 공간음향</label>
+            <p className="setnote" id="setrspnote" />
           </section>
           <section>
             <h3>날씨</h3>
