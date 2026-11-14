@@ -16,11 +16,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="ko">
       <head>
-        {/* eslint-disable-next-line @next/next/no-page-custom-font */}
-        <link
-          rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&display=swap"
-        />
+        {/* 화면 전체에 쓰는 넥슨 Lv1 고딕은 먼저 받아 둔다(편지·시계 글꼴은 쓸 때 받는다) */}
+        <link rel="preload" href="/fonts/nexon-lv1-gothic.woff2" as="font" type="font/woff2" crossOrigin="" />
       </head>
       <body>{children}</body>
     </html>

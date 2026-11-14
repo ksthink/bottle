@@ -1,4 +1,9 @@
 body{margin:0}img{max-width:100%}[hidden]{display:none!important}
+/* 글꼴: 화면 전체는 넥슨 Lv1 고딕, 편지 본문은 심경하체, 화면보호기 시계는 SF함박눈.
+   FONT/의 TTF를 영문·문장부호·한글 음절 11,172자 전부·자모만 남겨 WOFF2로 바꿨다(시계는 영문·숫자만). 다시 만드는 법은 README '글꼴' */
+@font-face{font-family:'NEXON Lv1 Gothic';src:url('/fonts/nexon-lv1-gothic.woff2') format('woff2');font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:'SimKyungha';src:url('/fonts/sim-kyungha.woff2') format('woff2');font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:'SF HambakSnow';src:url('/fonts/sf-hambaksnow.woff2') format('woff2');font-weight:800;font-style:normal;font-display:swap}
 /* Layout: full-bleed 3D island; a quiet ink HUD sits in the corners; letters open as paper sheets over the scene. Single committed look (the scene has its own day and night). */
 :root{
   --ink:#0f2029;
@@ -11,8 +16,9 @@ body{margin:0}img{max-width:100%}[hidden]{display:none!important}
   --paper-muted:#7a705c;
   --glass:#86cdb0;
   --warn:#e9ab72;
-  --font-letter:'Gowun Batang','Noto Serif KR','Apple SD Gothic Neo',serif;
-  --font-ui:'Gowun Dodum','Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif;
+  --font-letter:'SimKyungha','NEXON Lv1 Gothic','Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+  --font-ui:'NEXON Lv1 Gothic','Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif;
+  --font-clock:'SF HambakSnow','NEXON Lv1 Gothic',system-ui,sans-serif;
   color-scheme:dark;
 }
 html,body{height:100%}
@@ -26,7 +32,7 @@ body{background:var(--ink);color:var(--fg);font-family:var(--font-ui);font-size:
 .row{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-start;justify-content:space-between}
 .row.bottom{align-items:flex-end}
 .panel{pointer-events:auto;background:var(--panel);border:1px solid var(--panel-line);border-radius:10px;padding:8px 12px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);min-width:0}
-.title{font-family:var(--font-letter);font-weight:700;font-size:17px;letter-spacing:.02em}
+.title{font-family:var(--font-ui);font-weight:700;font-size:17px;letter-spacing:.02em}
 .status{color:var(--muted);font-size:13px;font-variant-numeric:tabular-nums}
 .clock{font-size:13px;font-variant-numeric:tabular-nums;margin-top:2px}
 .seedbox{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
@@ -69,14 +75,14 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .ico-bottle{display:inline-block;width:12px;height:22px;margin-top:6px;border:1.5px solid var(--glass);background:rgba(134,205,176,.35);border-radius:5px 5px 3px 3px;position:relative}
 .ico-bottle::before{content:"";position:absolute;left:50%;top:-7px;width:6px;height:6px;transform:translateX(-50%);background:#b98a55;border-radius:2px 2px 0 0}
 .center{display:flex;flex-direction:column;align-items:center;gap:8px;flex:1 1 200px;min-width:0}
-#action{pointer-events:auto;font-size:16px;padding:10px 18px;background:var(--fg);color:var(--ink);border-color:transparent;font-family:var(--font-letter);font-weight:700}
+#action{pointer-events:auto;font-size:16px;padding:10px 18px;background:var(--fg);color:var(--ink);border-color:transparent;font-family:var(--font-ui);font-weight:700}
 #action:hover{background:#fff}
 #toast{pointer-events:none;max-width:32em;text-align:center;background:var(--panel);border:1px solid var(--panel-line);border-radius:10px;padding:8px 14px;font-size:14px;transition:opacity .4s}
 #toast.off{opacity:0}
 .veil{position:absolute;inset:0;background:rgba(8,18,24,.55);display:flex;align-items:center;justify-content:center;
   padding-block:16px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 .sheet{width:min(34em,100%);max-height:100%;overflow:auto;background:var(--paper);color:var(--paper-ink);border-radius:4px;padding:26px 26px 20px;
-  font-family:var(--font-letter);font-size:16px;line-height:1.85;box-shadow:0 18px 50px rgba(0,0,0,.45);
+  font-family:var(--font-ui);font-size:16px;line-height:1.85;box-shadow:0 18px 50px rgba(0,0,0,.45);
   background-image:repeating-linear-gradient(transparent 0 28.6px,rgba(43,41,34,.07) 28.6px 29.6px)}
 .sheet .tag{font-family:var(--font-ui);font-size:12px;letter-spacing:.08em;color:var(--paper-muted);margin:0 0 10px}
 .sheet p{margin:0 0 14px;text-wrap:pretty}
@@ -92,6 +98,8 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .sheet .err{font-family:var(--font-ui);font-size:13px;color:#9b3d1f;margin:6px 0 0;min-height:1.5em}
 .sheet textarea{width:100%;box-sizing:border-box;min-height:9.5em;resize:vertical;background:transparent;border:1px solid rgba(43,41,34,.3);border-radius:3px;
   color:var(--paper-ink);font-family:var(--font-letter);font-size:16px;line-height:1.8;padding:8px 10px}
+/* 편지를 읽는 창은 본문만 심경하체(꼬리표·버튼·안내는 위에서 넥슨으로 둔다) */
+.sheet.letter{font-family:var(--font-letter)}
 .sheet .count{font-family:var(--font-ui);font-size:12px;color:var(--paper-muted);text-align:right;font-variant-numeric:tabular-nums}
 .sheet.radio{background:#14262f;color:var(--fg);background-image:none;font-family:var(--font-ui);border:1px solid var(--panel-line);border-radius:10px}
 .sheet.radio .tag{color:var(--muted)}
@@ -111,9 +119,9 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .stog span{padding:4px 9px;border-radius:999px;color:var(--muted)}
 .stog span+span{margin-left:1px;box-shadow:-1px 0 0 var(--panel-line)}
 .stog span.on{background:var(--fg);color:var(--ink);box-shadow:none}
-.stime{font-family:var(--font-ui);font-size:clamp(64px,13vw,168px);line-height:.95;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.stime{font-family:var(--font-clock);font-weight:800;font-size:clamp(64px,13vw,168px);line-height:.95;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
 .stime small{font-size:.32em;margin-left:.18em;opacity:.8}
-.sdate{font-family:var(--font-ui);font-size:clamp(17px,2.6vw,30px);letter-spacing:.02em}
+.sdate{font-family:var(--font-clock);font-weight:800;font-size:clamp(17px,2.6vw,30px);letter-spacing:.02em}
 #sanalog svg{display:block;width:clamp(150px,26vw,260px);height:auto;filter:drop-shadow(0 4px 14px rgba(0,0,0,.35))}
 #sanalog .face{fill:rgba(13,29,38,.32);stroke:rgba(255,255,255,.75);stroke-width:2}
 #sanalog .tk{stroke:rgba(255,255,255,.6);stroke-width:1.5}

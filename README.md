@@ -32,7 +32,7 @@
 
 ```
 app/
-  page.tsx, layout.tsx      첫 화면(섬)과 공통 틀, 글꼴(Gowun Batang·Gowun Dodum)
+  page.tsx, layout.tsx      첫 화면(섬)과 공통 틀
   globals.css               HUD·창·편지함 두루마리 등 화면 스타일 전부
   privacy/                  개인정보처리방침
   api/
@@ -61,6 +61,7 @@ lib/
 supabase/migrations/        DB 스키마와 함수(순서대로 적용)
 public/sounds/              배경음·효과음 mp3와 manifest.json
 public/textures/            불꽃 텍스처
+public/fonts/               웹폰트(WOFF2). 넥슨 Lv1 고딕, 심경하체, SF함박눈
 scripts/sound-manifest.mjs  public/sounds의 mp3 목록을 manifest.json으로 적는다
 prototype/index.html        처음 만든 단일 파일 시제품(참고용)
 ```
@@ -119,6 +120,26 @@ npm run dev     # http://localhost:3000
 - **행동 버튼**(화면 아래 가운데): 라디오 곁에서는 '라디오를 켠다/끈다', 회원이 병을 가지고 해변에 있으면 '편지를 쓴다'.
 - **왼쪽 아래**: 가진 병 수, 받은 편지 수(누르면 편지함), 모래글(위에서 내려다보며 모래에 글씨를 새긴다), 앉기(가만히 3분이면 저절로 앉고, 앉은 지 5분이면 가방을 베고 눕는다).
 - **오른쪽 위**: 섬 이름(회원이 계정 창에서 짓는다. 처음엔 '무인도')과 `#고유번호`, 계정, 설정(배경음·라디오 크기 3단계, 공간음향, 날씨 자동 변경, 화면보호기).
+
+## 글꼴
+
+| 쓰는 곳 | 글꼴 | 파일 |
+| --- | --- | --- |
+| 화면 전체(HUD, 창, 버튼, 기념사진 글자) | 넥슨 Lv1 고딕 | `public/fonts/nexon-lv1-gothic.woff2` |
+| 편지 본문(읽는 창, 쓰는 칸, 편지함 두루마리) | 심경하체 | `public/fonts/sim-kyungha.woff2` |
+| 화면보호기 시계 | SF함박눈 | `public/fonts/sf-hambaksnow.woff2` |
+
+- `app/globals.css`의 `@font-face`와 `--font-ui`, `--font-letter`, `--font-clock`으로 쓴다. 넥슨 Lv1 고딕은 `app/layout.tsx`에서 미리 받는다.
+- 원본 TTF에서 필요한 글자만 남겨 WOFF2로 바꿨다. 넥슨과 심경하체는 영문, 문장부호, 한글 음절 11,172자 전부, 자모를 남기고(한자는 뺐다), 시계 글꼴은 영문과 숫자만 남겼다. 다시 만들려면 원본 TTF를 `FONT/`에 두고:
+
+```sh
+U='U+0020-007E,U+00A0-00FF,U+1100-11FF,U+2010-2027,U+2030-203A,U+20A9,U+2116,U+2122,U+2190-21FF,U+2460-2473,U+25A0-25FF,U+2600-26FF,U+3000-303F,U+3131-318E,U+AC00-D7A3,U+FF01-FF5E'
+pyftsubset FONT/NEXON.ttf  --unicodes="$U" --flavor=woff2 --layout-features='*' --no-hinting --output-file=public/fonts/nexon-lv1-gothic.woff2
+pyftsubset FONT/SIM.ttf    --unicodes="$U" --flavor=woff2 --layout-features='*' --no-hinting --output-file=public/fonts/sim-kyungha.woff2
+pyftsubset FONT/SF_TTF.ttf --unicodes='U+0020-007E' --flavor=woff2 --layout-features='*' --no-hinting --output-file=public/fonts/sf-hambaksnow.woff2
+```
+
+(`pyftsubset`은 `pip install fonttools brotli`로 설치한다.)
 
 ## 소리
 
