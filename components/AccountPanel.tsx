@@ -1,19 +1,27 @@
 'use client';
 
-import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { authMessage, getAccount, pending, type Account } from '@/lib/account';
 import { net } from '@/lib/net';
 import { supabase } from '@/lib/supabase';
 
-type View = 'closed' | 'guest' | 'signup' | 'code' | 'setpw' | 'login' | 'forgot' | 'member' | 'withdraw' | 'recovery' | 'welcome';
+type View = 'closed' | 'guest' | 'signup' | 'code' | 'setpw' | 'login' | 'forgot' | 'member' | 'passwd' | 'withdraw' | 'recovery' | 'welcome';
 
 // 메일 템플릿에 6자리 코드({{ .Token }})를 넣었을 때만 코드 입력칸을 보여준다.
 // 기본 메일 서버를 쓰는 동안은 템플릿을 고칠 수 없어 링크만 온다. SMTP 연결 뒤 NEXT_PUBLIC_EMAIL_CODE=1
 const EMAIL_CODE = process.env.NEXT_PUBLIC_EMAIL_CODE === '1';
 
-// 비밀번호를 정해야 끝나는 화면은 Esc로 닫지 않는다
+// 비밀번호를 정해야 끝나는 화면은 Esc·바깥 누르기·X로 닫지 않는다
 const locked = (v: View) => v === 'recovery' || v === 'setpw';
+
+// 섬 이름: 회원이 계정 창에서 짓는다. 짓기 전에는 '무인도'. 화면 왼쪽 위 상자(#iname)에 보인다
+const DEFAULT_NAME = '무인도';
+const NAME_MAX = 12;
+const showName = (n?: string) => {
+  const el = document.getElementById('iname');
+  if (el) el.textContent = n || DEFAULT_NAME;
+};
 
 // 오른쪽 위의 계정 버튼과, 누르면 열리는 가입·로그인 종이.
 // 섬 엔진과 따로 돈다. 키 입력은 여기서 막아 캐릭터가 움직이지 않게 한다.
@@ -27,11 +35,16 @@ export default function AccountPanel() {
   const [note, setNote] = useState('');
   const [busy, setBusy] = useState(false);
   const [root, setRoot] = useState<HTMLElement | null>(null);
+  const [newPw, setNewPw] = useState('');
+  const [name, setName] = useState('');
+  // 창 바깥(어두운 막)에서 눌렀다 뗐을 때만 닫는다. 창 안에서 끌다가 바깥에서 놓은 것은 닫지 않는다
+  const downOut = useRef(false);
 
   useEffect(() => {
     setRoot(document.getElementById('app'));
     getAccount().then((a) => {
       setAcct(a);
+      showName(a.islandName);
       if (a.recovery) setView('recovery');
       else if (a.needPassword) setView('setpw');
       else if (a.linkError) {
@@ -57,6 +70,9 @@ export default function AccountPanel() {
   const go = (v: View) => {
     setErr('');
     setNote('');
+    setPassword('');
+    setNewPw('');
+    if (v === 'member') setName(acct.islandName ?? '');
     setView(v);
   };
 
@@ -136,8 +152,35 @@ export default function AccountPanel() {
     go('closed');
   });
 
-  // 탈퇴: 보낸 편지를 거둬들이고 계정·섬·받은 편지를 지운다. 되돌릴 수 없다
+  // 비밀번호를 한 번 더 확인한다(비밀번호 수정·탈퇴 전에)
+  const verify = async (pw: string) => {
+    const { error } = await sb.auth.signInWithPassword({ email: acct.email ?? '', password: pw });
+    if (error) throw error.code === 'invalid_credentials' ? { message: '비밀번호가 맞지 않습니다.' } : error;
+  };
+
+  // 섬 이름은 계정 정보(user_metadata)에 둔다. 비우면 '무인도'로 돌아간다
+  const saveName = run(async () => {
+    const n = name.trim().slice(0, NAME_MAX);
+    const { error } = await sb.auth.updateUser({ data: { island_name: n } });
+    if (error) throw error;
+    setAcct({ ...acct, islandName: n || undefined });
+    setName(n);
+    showName(n);
+    setNote(n ? `섬 이름을 ‘${n}’(으)로 지었습니다.` : `섬 이름을 ‘${DEFAULT_NAME}’(으)로 되돌렸습니다.`);
+  });
+
+  const changePw = run(async () => {
+    if (newPw.length < 8) throw { code: 'weak_password' };
+    await verify(password);
+    const { error } = await sb.auth.updateUser({ password: newPw });
+    if (error) throw error;
+    go('member');
+    setNote('비밀번호를 바꿨습니다.');
+  });
+
+  // 탈퇴: 비밀번호를 확인한 뒤, 보낸 편지를 거둬들이고 계정·섬·받은 편지를 지운다. 되돌릴 수 없다
   const withdraw = run(async () => {
+    await verify(password);
     try {
       await net.withdraw();
     } catch (e) {
@@ -158,13 +201,20 @@ export default function AccountPanel() {
   return (
     <>
       <button id="acctbtn" type="button" onClick={() => go(member ? 'member' : 'guest')}>
-        {member ? '내 계정' : '가입 · 로그인'}
+        {member ? '계정' : '가입 · 로그인'}
       </button>
       {view !== 'closed' &&
         root &&
         createPortal(
           <div
             className="veil"
+            onPointerDown={(e) => {
+              downOut.current = e.target === e.currentTarget;
+            }}
+            onClick={(e) => {
+              if (downOut.current && e.target === e.currentTarget && !locked(view)) go('closed');
+              downOut.current = false;
+            }}
             onKeyDown={(e) => {
               // 창 안의 키 입력은 섬(캐릭터)으로 보내지 않는다. 그래서 Esc도 여기서 직접 받는다
               e.stopPropagation();
@@ -172,7 +222,12 @@ export default function AccountPanel() {
             }}
             onKeyUp={(e) => e.stopPropagation()}
           >
-            <div className="sheet" role="dialog" aria-modal="true" aria-labelledby="acct-h">
+            <div className="sheet acct" role="dialog" aria-modal="true" aria-labelledby="acct-h">
+              {!locked(view) && (
+                <button type="button" className="x" aria-label="닫기" onClick={() => go('closed')}>
+                  ×
+                </button>
+              )}
               {view === 'guest' && (
                 <>
                   <p className="tag">손님</p>
@@ -181,7 +236,6 @@ export default function AccountPanel() {
                   <div className="btns">
                     <button type="button" className="primary" onClick={() => go('signup')}>이 섬에 남기 (가입)</button>
                     <button type="button" onClick={() => go('login')}>내 섬으로 돌아가기 (로그인)</button>
-                    <button type="button" onClick={() => go('closed')}>닫기</button>
                   </div>
                 </>
               )}
@@ -269,22 +323,42 @@ export default function AccountPanel() {
 
               {view === 'member' && (
                 <>
-                  <p className="tag">내 계정</p>
+                  <p className="tag">계정</p>
                   <h2 id="acct-h">{acct.email}</h2>
-                  <p>이 계정의 섬에 머무는 중입니다.</p>
+                  <form onSubmit={saveName}>
+                    <label htmlFor="ac-name">섬 이름</label>
+                    <div className="inrow">
+                      <input id="ac-name" value={name} onChange={(e) => setName(e.target.value)} maxLength={NAME_MAX} placeholder={DEFAULT_NAME} autoComplete="off" />
+                      <button type="submit" aria-busy={busy}>저장</button>
+                    </div>
+                  </form>
+                  <p className="err" role="alert">{err}</p>
+                  {note && <p className="note" role="status">{note}</p>}
                   <div className="btns">
+                    <button type="button" onClick={() => go('passwd')}>비밀번호 수정</button>
                     <button type="button" onClick={logout}>로그아웃</button>
                     <button type="button" onClick={() => go('withdraw')}>탈퇴</button>
-                    <button type="button" className="primary" onClick={() => go('closed')}>닫기</button>
                   </div>
                   <p className="note"><a href="/privacy" target="_blank" rel="noopener">개인정보처리방침</a></p>
                 </>
+              )}
+
+              {view === 'passwd' && (
+                <Form onSubmit={changePw} title="비밀번호 수정" tag="계정" err={err} note={note}>
+                  <Field id="pw-cur" autoFocus label="지금 비밀번호" type="password" value={password} onChange={setPassword} autoComplete="current-password" />
+                  <Field id="pw-new" label="새 비밀번호 (8자 이상)" type="password" value={newPw} onChange={setNewPw} autoComplete="new-password" />
+                  <div className="btns">
+                    <button type="submit" className="primary" aria-busy={busy}>바꾸기</button>
+                    <button type="button" onClick={() => go('member')}>뒤로</button>
+                  </div>
+                </Form>
               )}
 
               {view === 'withdraw' && (
                 <Form onSubmit={withdraw} title="섬을 떠납니다" tag="탈퇴" err={err} note={note}>
                   <p>탈퇴하면 계정과 섬, 가진 병, 받은 편지와 보낸 편지 기록이 모두 지워지고 되돌릴 수 없습니다.</p>
                   <p>아직 바다를 떠돌거나 해변에서 열리지 않은 내 편지는 거둬들입니다. 이미 누군가 읽은 편지는 그 사람의 편지함에 남습니다.</p>
+                  <Field id="wd-pw" autoFocus label="비밀번호를 한 번 더 넣어 주세요" type="password" value={password} onChange={setPassword} autoComplete="current-password" />
                   <div className="btns">
                     <button type="submit" aria-busy={busy}>탈퇴하기</button>
                     <button type="button" className="primary" onClick={() => go('member')}>그만두기</button>

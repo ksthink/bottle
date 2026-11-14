@@ -27,10 +27,10 @@ export default function Island() {
             <div className="status" id="status">1일째</div>
           </div>
           <div className="panel seedbox">
-            <div className="compass" aria-hidden="true"><i id="needle" /></div>
+            {/* 섬 이름(회원은 계정 창에서 고친다)과 이 섬의 고유 번호 */}
             <div>
-              <div className="label">섬 시드</div>
-              <div className="num" id="seed">00000</div>
+              <div className="iname" id="iname">무인도</div>
+              <div className="num" id="seed">#00000</div>
             </div>
             <AccountPanel />
             <button id="gear" type="button" aria-label="설정" aria-expanded="false" aria-controls="setpanel">⚙</button>
@@ -41,9 +41,15 @@ export default function Island() {
         <div className="panel setpanel" id="setpanel" role="dialog" aria-label="설정" hidden>
           <section>
             <h3>소리</h3>
-            <label className="tog"><input type="checkbox" id="setbg" defaultChecked /> 배경음</label>
-            <label className="tog"><input type="checkbox" id="setradio" /> 라디오</label>
-            <label className="tog"><input type="checkbox" id="setrsp" defaultChecked /> 라디오 공간음향</label>
+            <div className="volrow">
+              <label className="tog"><input type="checkbox" id="setbg" defaultChecked /> 배경음</label>
+              <Vol id="setbgv" label="배경음 크기" />
+            </div>
+            <div className="volrow">
+              <label className="tog"><input type="checkbox" id="setradio" /> 라디오</label>
+              <Vol id="setrv" label="라디오 크기" />
+            </div>
+            <label className="tog"><input type="checkbox" id="setrsp" defaultChecked /> 공간음향</label>
             <p className="setnote" id="setrspnote" />
           </section>
           <section>
@@ -98,6 +104,16 @@ export default function Island() {
       <div id="fail" hidden>
         이 기기에서는 3D 화면을 열 수 없습니다. WebGL을 지원하는 브라우저에서 다시 열어 주세요.
       </div>
+    </div>
+  );
+}
+
+// 소리 크기 3단계 게이지(저·중·고). 값과 켜짐 상태는 game.js가 맞춘다
+function Vol(props: { id: string; label: string }) {
+  return (
+    <div className="vol">
+      <input type="range" id={props.id} min={0} max={2} step={1} defaultValue={1} aria-label={props.label} aria-valuetext="중" />
+      <div className="ticks" aria-hidden="true"><span>저</span><span>중</span><span>고</span></div>
     </div>
   );
 }

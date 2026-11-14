@@ -4,6 +4,8 @@ export type Account = {
   // member: 이메일 인증을 마친 회원, guest: 이번 접속만 사는 익명 계정, offline: 서버에 닿지 못함
   kind: 'member' | 'guest' | 'offline';
   email?: string;
+  // 회원이 지은 섬 이름. 없으면 '무인도'
+  islandName?: string;
   seed: number;
   // 섬이 생긴 시각(ms)
   born?: number;
@@ -57,6 +59,7 @@ async function open(): Promise<Account> {
     return {
       kind: member ? 'member' : 'guest',
       email: user.email ?? undefined,
+      islandName: member ? (user.user_metadata?.island_name as string | undefined) || undefined : undefined,
       seed: island.seed,
       born: Date.parse(island.created_at),
       recovery,

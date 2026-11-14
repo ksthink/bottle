@@ -30,20 +30,28 @@ body{background:var(--ink);color:var(--fg);font-family:var(--font-ui);font-size:
 .status{color:var(--muted);font-size:13px;font-variant-numeric:tabular-nums}
 .clock{font-size:13px;font-variant-numeric:tabular-nums;margin-top:2px}
 .seedbox{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.seedbox .label{font-size:12px;color:var(--muted);letter-spacing:.06em}
-.seedbox .num{font-variant-numeric:tabular-nums;font-size:15px}
+.seedbox .iname{font-size:14px;max-width:9em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.seedbox .num{font-variant-numeric:tabular-nums;font-size:11px;color:var(--muted);letter-spacing:.04em}
 #gear{font-size:17px;line-height:1;padding:6px 9px}
 #gear[aria-expanded="true"]{background:rgba(243,236,220,.22)}
 /* 설정 창: 오른쪽 위 톱니 아래에 열린다 */
-.setpanel{position:absolute;z-index:6;top:calc(12px + 58px);right:max(16px,env(safe-area-inset-right,0px));width:min(15em,calc(100% - 32px));box-sizing:border-box;padding:12px 14px;display:flex;flex-direction:column;gap:12px}
+.setpanel{position:absolute;z-index:6;top:calc(12px + 58px);right:max(16px,env(safe-area-inset-right,0px));width:min(17em,calc(100% - 32px));box-sizing:border-box;padding:12px 14px;display:flex;flex-direction:column;gap:12px}
 .setpanel h3{margin:0 0 6px;font-size:12px;font-weight:400;color:var(--muted);letter-spacing:.06em}
 .setpanel section{display:flex;flex-direction:column;gap:6px;align-items:flex-start}
 .setpanel .tog{display:flex;align-items:center;gap:8px;cursor:pointer}
 .setpanel .tog input{width:17px;height:17px;margin:0;accent-color:var(--warn);cursor:pointer}
 .setnote{margin:0;font-size:12px;color:var(--muted)}
-.compass{width:34px;height:34px;border-radius:50%;border:1px solid var(--panel-line);position:relative;flex:none}
-.compass i{position:absolute;inset:0;display:block}
-.compass i::before{content:"북";position:absolute;left:50%;top:1px;transform:translateX(-50%);font-style:normal;font-size:11px;color:var(--warn)}
+/* 소리 크기 게이지: 가는 선 위의 세로 막대(-|------), 아래에 저·중·고 */
+.setpanel .volrow{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%}
+.vol{width:6.5em;flex:none}
+.vol input{-webkit-appearance:none;appearance:none;display:block;width:100%;height:18px;margin:0;background:transparent;cursor:pointer}
+.vol input::-webkit-slider-runnable-track{height:2px;background:rgba(243,236,220,.35)}
+.vol input::-moz-range-track{height:2px;background:rgba(243,236,220,.35)}
+.vol input::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:4px;height:15px;margin-top:-6.5px;border-radius:2px;background:var(--warn);border:0}
+.vol input::-moz-range-thumb{width:4px;height:15px;border-radius:2px;background:var(--warn);border:0}
+.vol input:focus-visible{outline:1px solid var(--warn);outline-offset:2px}
+.vol .ticks{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);line-height:1;margin-top:1px}
+.vol.off{opacity:.45}
 button{font:inherit;color:var(--fg);background:rgba(243,236,220,.1);border:1px solid var(--panel-line);border-radius:8px;padding:7px 12px;cursor:pointer}
 button:hover{background:rgba(243,236,220,.18)}
 button:focus-visible,textarea:focus-visible{outline:2px solid var(--warn);outline-offset:2px}
@@ -98,7 +106,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
 @media (max-width:520px){ .help{display:none} .title{font-size:15px} }
 /* 모바일: 시계와 편지 쓰기·앉기·모래글쓰기·설정만 남긴다 (상황 버튼과 짧은 알림은 그대로) */
 @media (max-width:640px), (pointer:coarse) and (max-height:520px){
-  .title,.status,.help,.shelfnote,#slots,.seedbox .compass,.seedbox > div{display:none}
+  .title,.status,.help,.shelfnote,#slots,.seedbox > div{display:none}
   .clock{margin-top:0;font-size:13px}
   .hud .panel{padding:6px 10px}
   .seedbox{gap:6px}
@@ -108,6 +116,14 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .sheet .mail .tag{margin-bottom:6px}
 .sheet p{white-space:pre-line}
 .sheet a{color:inherit}
+/* 계정 창: 오른쪽 위 X로 닫는다(창 바깥을 눌러도 닫힌다) */
+.sheet.acct{position:relative}
+.sheet.acct .tag{padding-right:36px}
+.sheet .x{position:absolute;top:8px;right:8px;width:32px;height:32px;padding:0;border:0;background:transparent;font-size:22px;line-height:1;color:var(--paper-muted);cursor:pointer}
+.sheet .x:hover{background:rgba(43,41,34,.08);color:var(--paper-ink)}
+.sheet .inrow{display:flex;gap:8px}
+.sheet .inrow input{flex:1;min-width:0}
+.sheet .inrow button{flex:none}
 /* 문서 페이지 (개인정보처리방침): 섬 화면과 달리 스크롤한다 */
 .doc{height:100%;overflow:auto;padding:24px max(16px,env(safe-area-inset-left,0px));box-sizing:border-box}
 .doc .sheet{margin:0 auto;max-height:none}
