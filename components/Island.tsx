@@ -77,7 +77,7 @@ export default function Island() {
           </div>
           <div className="center">
             <div id="toast" className="off" role="status" aria-live="polite" />
-            <button id="action" type="button" hidden>병을 줍는다</button>
+            <button id="action" type="button" hidden>라디오를 켠다</button>
           </div>
           <div className="panel help">
             <b>땅을 누르면 걷고, 끌면 둘러봅니다.</b> 방향키와 휠도 됩니다.<br />
