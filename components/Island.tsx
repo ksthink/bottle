@@ -65,11 +65,7 @@ export default function Island() {
         </div>
 
         <div className="row bottom">
-          <div className="center">
-            <div id="toast" className="off" role="status" aria-live="polite" />
-            <button id="action" type="button" hidden>라디오를 켠다</button>
-          </div>
-          {/* 오른쪽 아래: 가진 병 수, 받은 편지 수(누르면 편지함), 편지쓰기·모래글·앉기 */}
+          {/* 왼쪽 아래: 가진 병 수, 받은 편지 수(누르면 편지함), 편지쓰기·모래글·앉기 */}
           <div className="panel dock">
             <span className="cnt" id="bottles" role="img" aria-label="가진 병">
               <i className="ico-bottle" aria-hidden="true" />
@@ -79,6 +75,10 @@ export default function Island() {
             <button id="write" type="button">편지쓰기</button>
             <button id="sandw" type="button">모래글</button>
             <button id="sit" type="button">앉기</button>
+          </div>
+          <div className="center">
+            <div id="toast" className="off" role="status" aria-live="polite" />
+            <button id="action" type="button" hidden>라디오를 켠다</button>
           </div>
         </div>
       </div>

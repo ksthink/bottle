@@ -56,11 +56,11 @@ button{font:inherit;color:var(--fg);background:rgba(243,236,220,.1);border:1px s
 button:hover{background:rgba(243,236,220,.18)}
 button:focus-visible,textarea:focus-visible{outline:2px solid var(--warn);outline-offset:2px}
 button:disabled{opacity:.45;cursor:not-allowed}
-/* 가운데 알림 칸, 오른쪽 도구 줄. 도구 줄은 한 줄을 지키고(그만큼 자리를 먼저 잡는다) 알림은 남는 가운데에 둔다 */
-.row.bottom{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,32em) minmax(max-content,1fr);align-items:end}
+/* 왼쪽 도구 줄, 가운데 알림 칸. 도구 줄은 한 줄을 지키고(그만큼 자리를 먼저 잡는다) 알림은 남는 가운데에 둔다 */
+.row.bottom{display:grid;grid-template-columns:minmax(max-content,1fr) minmax(0,32em) minmax(0,1fr);align-items:end}
 .row.bottom .center{grid-column:2}
-/* 오른쪽 아래 도구 줄: 병·두루마리 아이콘과 개수, 그리고 버튼 셋 */
-.dock{grid-column:3;justify-self:end;display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+/* 왼쪽 아래 도구 줄: 병·두루마리 아이콘과 개수, 그리고 버튼 셋 */
+.dock{grid-column:1;grid-row:1;justify-self:start;display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-start}
 .dock .cnt{display:inline-flex;align-items:center;gap:6px;padding:4px 6px;font-variant-numeric:tabular-nums;font-size:15px;line-height:1}
 .dock .cnt b{font-weight:400;min-width:.7em}
 .dock #bottles.full b{color:var(--warn)}
@@ -112,6 +112,8 @@ button:disabled{opacity:.45;cursor:not-allowed}
   .title,.status,.seedbox > div{display:none}
   .row.bottom{grid-template-columns:1fr;gap:8px}
   .row.bottom .center,.dock{grid-column:1}
+  .row.bottom .center{grid-row:1}
+  .dock{grid-row:2}
   .clock{margin-top:0;font-size:13px}
   .hud .panel{padding:6px 10px}
   .seedbox{gap:6px}
