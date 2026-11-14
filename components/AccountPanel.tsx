@@ -232,7 +232,8 @@ export default function AccountPanel() {
                 <>
                   <p className="tag">손님</p>
                   <h2 id="acct-h">지금은 손님으로 머무는 중입니다</h2>
-                  <p>이 섬을 떠나면 섬도, 가진 병도 함께 사라집니다. 가입하면 지금 이 섬과 병이 그대로 남고, 받은 편지와 보낸 편지를 모아 둘 수 있습니다.</p>
+                  <p>손님은 편지를 받아 읽을 수만 있습니다. 가입하면 편지를 써서 바다에 띄울 수 있고, 지금 이 섬과 병이 그대로 남아 받은 편지와 보낸 편지를 모아 둘 수 있습니다.</p>
+                  <p className="note">이 섬을 떠나면 섬도, 가진 병도 함께 사라집니다.</p>
                   <div className="btns">
                     <button type="button" className="primary" onClick={() => go('signup')}>이 섬에 남기 (가입)</button>
                     <button type="button" onClick={() => go('login')}>내 섬으로 돌아가기 (로그인)</button>

@@ -44,6 +44,8 @@ export const net = {
         return '편지는 다섯 글자 이상, 300자 이하로 적어 주세요.';
       case 'auth':
         return '섬과의 연결이 끊어졌습니다. 새로 고쳐 주세요.';
+      case 'members_only':
+        return '편지는 가입한 회원만 보낼 수 있습니다.';
       default:
         return '바다가 거칠어 병이 닿지 않았습니다. 잠시 뒤에 다시 해 주세요.';
     }

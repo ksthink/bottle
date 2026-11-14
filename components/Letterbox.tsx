@@ -10,7 +10,9 @@ const SHORT = new Intl.DateTimeFormat('ko-KR', { month: 'short', day: 'numeric' 
 
 type Tab = 'received' | 'sent';
 type Mode = 'scroll' | 'list';
-type Item = { body: string; at: string; rule?: number | null };
+type Item = { body: string; at: string; rule?: number | null; key?: string };
+// game.js가 편지를 열거나(가라앉힐 때) 알리는 내용
+type Note = { key: string; body: string | null; rule: number | null; at: string; remove: boolean };
 
 // 두루마리 틈으로 보이는 첫 문장(길면 줄임)
 function firstLine(body: string) {
@@ -34,10 +36,15 @@ const loadMode = (): Mode => {
   }
 };
 
-// 회원만 보는 편지함. 받은 편지(열어 본 것, 가라앉힌 것은 빠짐)와 보낸 편지(본문과 날짜만).
+// 편지함. 회원은 받은 편지(열어 본 것, 가라앉힌 것은 빠짐)와 보낸 편지(본문과 날짜만)를 서버에서 꺼낸다.
+// 원칙: 편지는 회원만 보낸다. 비회원(손님·오프라인)은 받기만 하므로 보낸 편지 칸이 없고, 이번 접속에서 연 편지만 화면에 모아 둔다(접속마다 새 계정이라 남지 않는다).
 // 편지는 감긴 두루마리로 놓여 첫 문장만 살짝 보인다. 옆으로 넘기며 고르거나 목록으로 보고, 누르면 펼쳐 읽는다
 export default function Letterbox() {
-  const [member, setMember] = useState(false);
+  const [kind, setKind] = useState<'member' | 'guest' | 'offline' | null>(null);
+  const member = kind === 'member';
+  const memberRef = useRef(false);
+  // 비회원: 이번 접속에서 연 편지(새것이 앞)
+  const [local, setLocal] = useState<Item[]>([]);
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState<Tab>('received');
   const [mode, setMode] = useState<Mode>('scroll');
@@ -98,16 +105,25 @@ export default function Letterbox() {
   };
 
   useEffect(() => {
-    // 받은 편지 수: 처음 한 번, 그리고 해변에서 편지를 열 때마다(game.js가 'bottle-letters'를 알린다) 다시 센다
+    // 받은 편지 수: 회원은 처음 한 번, 그리고 해변에서 편지를 열 때마다(game.js가 'bottle-letters'를 알린다) 서버에서 다시 센다.
+    // 비회원은 알려 온 편지를 화면에 모으고(같은 편지는 한 번만), 가라앉힌 편지는 뺀다
     const recount = () => net.letters().then((d) => setCount(d.received.length), () => {});
+    const onNote = (e: Event) => {
+      if (memberRef.current) return void recount();
+      const n = (e as CustomEvent<Note>).detail;
+      if (!n) return;
+      setLocal((l) =>
+        n.remove ? l.filter((x) => x.key !== n.key) : l.some((x) => x.key === n.key) ? l : [{ key: n.key, body: n.body ?? '', rule: n.rule, at: n.at }, ...l],
+      );
+    };
     getAccount().then((a) => {
-      const m = a.kind === 'member';
-      setMember(m);
-      if (m) recount();
+      memberRef.current = a.kind === 'member';
+      setKind(a.kind);
+      if (memberRef.current) recount();
     });
     setMode(loadMode());
-    window.addEventListener('bottle-letters', recount);
-    return () => window.removeEventListener('bottle-letters', recount);
+    window.addEventListener('bottle-letters', onNote);
+    return () => window.removeEventListener('bottle-letters', onNote);
   }, []);
 
   useEffect(() => {
@@ -115,6 +131,7 @@ export default function Letterbox() {
     setData(null);
     setErr('');
     setSel(null);
+    if (!member) return;
     net.letters().then(
       (d) => {
         setData(d);
@@ -122,6 +139,7 @@ export default function Letterbox() {
       },
       (e) => setErr(net.message(e)),
     );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   // 탭을 바꾸면 처음 편지부터
@@ -139,10 +157,13 @@ export default function Letterbox() {
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, mode, tab, sel]);
+  }, [data, local, mode, tab, sel]);
 
-  if (!member) return null;
-  const list: Item[] = data?.[tab] ?? [];
+  if (!kind) return null;
+  // 비회원은 받은 편지(이번 접속분)만
+  const box: { received: Item[]; sent: Item[] } | null = member ? data : { received: local, sent: [] };
+  const shownCount = member ? count : local.length;
+  const list: Item[] = box?.[tab] ?? [];
   const root = typeof document === 'undefined' ? null : document.getElementById('app');
 
   const close = () => setOpen(false);
@@ -200,9 +221,9 @@ export default function Letterbox() {
 
   return (
     <>
-      <button id="mailbtn" type="button" className="cnt" title="편지함" aria-label={`편지함 열기${count !== null ? ` (받은 편지 ${count}통)` : ''}`} onClick={() => setOpen(true)}>
+      <button id="mailbtn" type="button" className="cnt" title="편지함" aria-label={`편지함 열기${shownCount !== null ? ` (받은 편지 ${shownCount}통)` : ''}`} onClick={() => setOpen(true)}>
         <i className="ico-scroll" aria-hidden="true" />
-        <b aria-hidden="true">{count ?? '·'}</b>
+        <b aria-hidden="true">{shownCount ?? '·'}</b>
       </button>
       {open &&
         root &&
@@ -250,10 +271,10 @@ export default function Letterbox() {
                   <h2 id="mail-h" className="sr">{tab === 'received' ? '받은 편지' : '보낸 편지'}</h2>
                   <div className="mbar">
                     <div className="tabs" role="tablist" aria-label="편지 종류">
-                      {(['received', 'sent'] as Tab[]).map((t) => (
+                      {(member ? (['received', 'sent'] as Tab[]) : (['received'] as Tab[])).map((t) => (
                         <button key={t} type="button" role="tab" aria-selected={tab === t} className="rch" aria-pressed={tab === t} onClick={() => setTab(t)}>
                           {t === 'received' ? '받은 편지' : '보낸 편지'}
-                          {data && <span className="cnt">{data[t].length}</span>}
+                          {box && <span className="cnt">{box[t].length}</span>}
                         </button>
                       ))}
                     </div>
@@ -264,10 +285,10 @@ export default function Letterbox() {
                   </div>
 
                   {err && <p className="err" role="alert">{err}</p>}
-                  {!data && !err && <p className="note">편지를 꺼내는 중…</p>}
-                  {data && list.length === 0 && <p className="note">{empty}</p>}
+                  {!box && !err && <p className="note">편지를 꺼내는 중…</p>}
+                  {box && list.length === 0 && <p className="note">{empty}</p>}
 
-                  {data && list.length > 0 && mode === 'scroll' && (
+                  {box && list.length > 0 && mode === 'scroll' && (
                     <div className="rail-wrap">
                       <button type="button" className="nav" aria-label="앞 편지" disabled={idx === 0} onClick={() => go(idx - 1)}>‹</button>
                       <div
@@ -320,10 +341,11 @@ export default function Letterbox() {
                       <button type="button" className="nav" aria-label="다음 편지" disabled={idx >= list.length - 1} onClick={() => go(idx + 1)}>›</button>
                     </div>
                   )}
-                  {data && list.length > 1 && mode === 'scroll' && <p className="pos center">{idx + 1} / {list.length} · 옆으로 넘겨 고르세요</p>}
+                  {box && list.length > 1 && mode === 'scroll' && <p className="pos center">{idx + 1} / {list.length} · 옆으로 넘겨 고르세요</p>}
 
                   {tab === 'sent' && list.length > 0 && <p className="note">어디로 갔는지, 읽혔는지는 알 수 없습니다.</p>}
-                  {data && list.length > 0 && mode === 'list' && (
+                  {!member && <p className="note">비회원은 편지를 받을 수만 있습니다. 가입하면 편지를 보낼 수 있고, 받은 편지도 계속 남습니다.</p>}
+                  {box && list.length > 0 && mode === 'list' && (
                     <ul className="mlist">
                       {list.map((l, i) => (
                         <li key={i}>

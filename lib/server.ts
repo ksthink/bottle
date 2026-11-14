@@ -9,11 +9,14 @@ export function admin(): SupabaseClient {
 }
 
 // Authorization: Bearer <사용자 토큰> 을 Supabase에 확인받는다
-export async function userId(req: Request, sb: SupabaseClient): Promise<string | null> {
+export async function authUser(req: Request, sb: SupabaseClient): Promise<{ id: string; member: boolean } | null> {
   const jwt = (req.headers.get('authorization') ?? '').replace(/^Bearer\s+/i, '');
   if (!jwt) return null;
   const { data, error } = await sb.auth.getUser(jwt);
-  return error || !data.user ? null : data.user.id;
+  return error || !data.user ? null : { id: data.user.id, member: !data.user.is_anonymous };
+}
+export async function userId(req: Request, sb: SupabaseClient): Promise<string | null> {
+  return (await authUser(req, sb))?.id ?? null;
 }
 
 // Vercel이 붙여 주는 x-forwarded-for 의 첫 주소가 요청한 사람의 IP다
@@ -23,7 +26,7 @@ export function clientIp(req: Request): string | null {
 }
 
 // DB 함수가 raise 한 코드만 화면으로 넘기고, 나머지는 감춘다
-const KNOWN = new Set(['no_island', 'no_bottle', 'bad_length', 'not_here']);
+const KNOWN = new Set(['no_island', 'no_bottle', 'bad_length', 'not_here', 'members_only']);
 export function fail(e: { message?: string } | null, status = 400) {
   const code = e?.message && KNOWN.has(e.message) ? e.message : 'server';
   if (code === 'server') console.error(e);

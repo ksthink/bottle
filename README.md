@@ -37,6 +37,12 @@ npm run dev
 - Authentication → Emails → Change email address 템플릿에 6자리 코드 `{{ .Token }}` 넣기 (비회원이 가입할 때 이 코드를 화면에 입력한다)
 - Authentication → Emails → SMTP: 기본 메일 서버는 시간당 몇 통만 보내므로 Resend 등 자체 SMTP 연결
 
+## 원칙
+
+- **편지는 가입한 회원만 보낸다.** 비회원(익명 손님 계정)과 오프라인은 받은 편지를 읽기만 한다. 화면(`lib/island/game.js`의 `CAN_WRITE`), 서버(`/api/throw`), DB(`throw_bottle`, `supabase/migrations/20261114000000_members_only.sql`) 세 곳에서 막는다
+- 그래서 신고된 편지에는 늘 보낸 사람의 이메일이 있고, 신고 메일에 함께 간다(`lib/mail.ts`)
+- 비회원은 병을 보내 비울 수 없으므로, 챙긴 병은 해변이 받을 수 있는 상한(3)에 넣지 않는다(`_total`)
+
 ## 운영
 
 - 금칙어: `lib/blocked-words.ts`를 고쳐 main에 올린다. 걸린 편지는 조용히 '차단됨'이 된다

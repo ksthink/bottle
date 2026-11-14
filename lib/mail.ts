@@ -25,8 +25,10 @@ export async function sendReportMail(r: Report): Promise<boolean> {
     console.error('RESEND_API_KEY가 없어 신고 메일을 보내지 못했습니다', r.id);
     return false;
   }
+  // 원칙상 편지는 회원만 보내므로 이메일이 있어야 한다. 없으면 탈퇴한 계정이거나, 원칙 이전에 비회원이 보낸 편지다
   const author =
-    r.author_email ?? (r.author_member === false ? '비회원' : r.author_member === null ? '알 수 없음(탈퇴했거나 정리된 계정)' : '-');
+    r.author_email ??
+    (r.author_member === false ? '비회원(이메일 없음 · 회원만 보낼 수 있다는 원칙 이전의 편지)' : r.author_member === null ? '알 수 없음(탈퇴했거나 정리된 계정)' : '-');
   const text = [
     `신고 #${r.id} · 편지 #${r.letter_id}`,
     '',
