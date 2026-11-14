@@ -97,9 +97,10 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .sheet .note{font-family:var(--font-ui);font-size:13px;color:var(--paper-muted);margin:6px 0 0}
 .sheet .err{font-family:var(--font-ui);font-size:13px;color:#9b3d1f;margin:6px 0 0;min-height:1.5em}
 .sheet textarea{width:100%;box-sizing:border-box;min-height:9.5em;resize:vertical;background:transparent;border:1px solid rgba(43,41,34,.3);border-radius:3px;
-  color:var(--paper-ink);font-family:var(--font-letter);font-size:16px;line-height:1.8;padding:8px 10px}
+  color:var(--paper-ink);font-family:var(--font-letter);font-size:18px;line-height:1.8;padding:8px 10px}
 /* 편지를 읽는 창은 본문만 심경하체(꼬리표·버튼·안내는 위에서 넥슨으로 둔다) */
-.sheet.letter{font-family:var(--font-letter)}
+.sheet.letter{font-family:var(--font-letter);font-size:18px}
+.sheet.letter .btns{font-size:16px}
 .sheet .count{font-family:var(--font-ui);font-size:12px;color:var(--paper-muted);text-align:right;font-variant-numeric:tabular-nums}
 .sheet.radio{background:#14262f;color:var(--fg);background-image:none;font-family:var(--font-ui);border:1px solid var(--panel-line);border-radius:10px}
 .sheet.radio .tag{color:var(--muted)}
@@ -208,7 +209,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .rolled:focus-visible{outline:2px solid var(--warn);outline-offset:6px}
 .rolled .roll{height:20px;border-radius:10px}
 .rolled .roll::before,.rolled .roll::after{width:12px}
-.peek{height:3.1em;padding:7px 10px;margin:0 3px;font-size:13px;line-height:1.55;text-align:left;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+.peek{height:3.1em;padding:7px 10px;margin:0 3px;font-size:14px;line-height:1.55;text-align:left;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
   box-shadow:inset 0 7px 6px -5px rgba(60,40,10,.45),inset 0 -7px 6px -5px rgba(60,40,10,.45)}
 .track .when,.mlist .when{font-size:12px;color:var(--muted);white-space:nowrap}
 
@@ -220,13 +221,13 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .mlist .mini::before,.mlist .mini::after,.ico-scroll::before,.ico-scroll::after{content:"";position:absolute;left:-1px;right:-1px;height:7px;border-radius:4px;background:linear-gradient(var(--p1) 0 20%,var(--p2) 55%,var(--p3))}
 .mlist .mini::before,.ico-scroll::before{top:-3px}
 .mlist .mini::after,.ico-scroll::after{bottom:-3px}
-.mlist .ln{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:var(--font-letter)}
+.mlist .ln{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:var(--font-letter);font-size:16px}
 
 /* 펼친 두루마리: 판 없이 두루마리만 떠 있고, 아래 막대가 내려가며 종이가 풀린다. 오른쪽 위 X로 접는다 */
 .sheet.mailbox.bare{width:min(36em,100%);background:none;border:0;box-shadow:none;padding:40px 8px 0;overflow:visible}
 .sheet.mailbox.bare .x{top:0;right:4px;background:var(--panel);border:1px solid var(--panel-line);border-radius:50%;color:var(--fg)}
 .scroll-open{margin:0 6px;filter:drop-shadow(0 10px 18px rgba(0,0,0,.45))}
-.scroll-open .paper{max-height:min(58vh,30em);overflow-y:auto;padding:16px 22px 10px;margin:0 3px;font-size:15px;line-height:1.75;animation:unroll .7s cubic-bezier(.2,.7,.2,1) both;
+.scroll-open .paper{max-height:min(58vh,30em);overflow-y:auto;padding:16px 22px 10px;margin:0 3px;font-size:17px;line-height:1.75;animation:unroll .7s cubic-bezier(.2,.7,.2,1) both;
   box-shadow:inset 0 9px 8px -7px rgba(60,40,10,.45),inset 0 -9px 8px -7px rgba(60,40,10,.45)}
 .scroll-open .paper p{margin:0 0 12px;white-space:pre-line;text-wrap:pretty}
 .scroll-open .paper .ptag{font-family:var(--font-ui);font-size:12px;color:var(--paper-muted);letter-spacing:.04em}
