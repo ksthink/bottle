@@ -1,4 +1,4 @@
-# 유리병 편지 섬 계획서
+# 나홀로섬에 계획서
 
 Claude Code 작업 지시용 문서. `prototype/index.html`이 화면과 규칙의 기준 시제품이고, 1단계에서 이를 Next.js(`lib/island/`)로 옮겼다.
 

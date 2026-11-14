@@ -1,6 +1,6 @@
 // 관리자 메일 (Resend). RESEND_API_KEY 가 없으면 보내지 않고 false 를 돌려준다.
 const TO = process.env.REPORT_TO || 'bottle@metaphr.dev';
-const FROM = process.env.MAIL_FROM || '유리병 편지 섬 <noreply@metaphr.dev>';
+const FROM = process.env.MAIL_FROM || '나홀로섬에 <noreply@metaphr.dev>';
 
 export type Report = {
   id: number;
@@ -50,7 +50,7 @@ export async function sendReportMail(r: Report): Promise<boolean> {
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: { authorization: `Bearer ${key}`, 'content-type': 'application/json' },
-    body: JSON.stringify({ from: FROM, to: [TO], subject: `[유리병 편지 섬] 신고 #${r.id}`, text }),
+    body: JSON.stringify({ from: FROM, to: [TO], subject: `[나홀로섬에] 신고 #${r.id}`, text }),
   });
   if (!res.ok) console.error('신고 메일 실패', res.status, await res.text().catch(() => ''));
   return res.ok;

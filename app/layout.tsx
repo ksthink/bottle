@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: '유리병 편지 섬',
+  title: '나홀로섬에',
   description: '혼자 사는 작은 섬에 유리병 편지가 밀려옵니다.',
 };
 

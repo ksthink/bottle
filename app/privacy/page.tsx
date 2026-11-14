@@ -1,13 +1,13 @@
 import type { Metadata } from 'next';
 
-export const metadata: Metadata = { title: '개인정보처리방침 · 유리병 편지 섬' };
+export const metadata: Metadata = { title: '개인정보처리방침 · 나홀로섬에' };
 
 // 내용을 바꾸면 맨 아래 시행일도 고친다
 export default function Privacy() {
   return (
     <div className="doc">
       <article className="sheet">
-        <p className="tag">유리병 편지 섬</p>
+        <p className="tag">나홀로섬에</p>
         <h1>개인정보처리방침</h1>
 
         <h2>1. 처리하는 개인정보</h2>
@@ -50,7 +50,7 @@ export default function Privacy() {
         <p>로그인 상태와 화면 설정을 이용자의 브라우저에 저장합니다. 광고나 추적을 위한 쿠키는 쓰지 않습니다.</p>
 
         <h2>8. 문의</h2>
-        <p>개인정보 보호 담당: 유리병 편지 섬 운영자 · <a href="mailto:bottle@metaphr.dev">bottle@metaphr.dev</a></p>
+        <p>개인정보 보호 담당: 나홀로섬에 운영자 · <a href="mailto:bottle@metaphr.dev">bottle@metaphr.dev</a></p>
 
         <p className="note">시행일: 2026년 11월 13일</p>
         <p className="note"><a href="/">섬으로 돌아가기</a></p>
