@@ -88,8 +88,10 @@ button:disabled{opacity:.45;cursor:not-allowed}
 #fail{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:24px;text-align:center}
 .sheet label{display:block;font-family:var(--font-ui);font-size:13px;color:var(--paper-muted);margin:8px 0 4px}
 .sheet input{width:100%;box-sizing:border-box;background:transparent;border:1px solid rgba(43,41,34,.3);border-radius:3px;color:var(--paper-ink);font:inherit;padding:7px 10px}
-/* 화면보호기: 화면 전체를 덮어 입력을 받아 두었다가, 움직이거나 누르면 돌아온다 */
-#lock{position:absolute;inset:0;z-index:30;cursor:none}
+/* 화면보호기: 화면은 그대로 끌어 시점을 바꿀 수 있게 막지 않고, 아래 가운데 끄기 버튼만 받는다 */
+#lock{position:absolute;inset:0;z-index:30;pointer-events:none;display:flex;align-items:flex-end;justify-content:center;padding-bottom:max(18px,env(safe-area-inset-bottom,0px))}
+#saveroff{pointer-events:auto;background:var(--panel);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);opacity:.7;transition:opacity .2s}
+#saveroff:hover,#saveroff:focus-visible{opacity:1}
 .writebar{position:absolute;left:50%;top:calc(env(safe-area-inset-top,0px) + 76px);transform:translateX(-50%);width:max-content;max-width:calc(100% - 32px);box-sizing:border-box;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center;background:var(--panel);border:1px solid var(--panel-line);border-radius:10px;padding:8px 12px;font-size:14px;z-index:5}
 .writebar .wbtns{display:flex;gap:6px}
 #wgo{background:var(--fg);color:var(--ink);border-color:transparent}

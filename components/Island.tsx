@@ -89,7 +89,10 @@ export default function Island() {
       <div className="veil" id="veil" hidden>
         <div className="sheet" id="sheet" role="dialog" aria-modal="true" tabIndex={-1} />
       </div>
-      <div id="lock" hidden />
+      {/* 화면보호기: 화면을 끌어 시점만 바꿀 수 있고, 아래 버튼으로 끈다 */}
+      <div id="lock" hidden>
+        <button id="saveroff" type="button">화면보호기 끄기</button>
+      </div>
       <div id="fail" hidden>
         이 기기에서는 3D 화면을 열 수 없습니다. WebGL을 지원하는 브라우저에서 다시 열어 주세요.
       </div>
