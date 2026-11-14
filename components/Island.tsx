@@ -97,6 +97,29 @@ export default function Island() {
       </div>
       {/* 화면보호기: 화면을 끌어 시점만 바꿀 수 있고, 아래 버튼으로 끈다 */}
       <div id="lock" hidden>
+        {/* 화면보호기 시계: 왼쪽 위에 오늘 날짜와 시간을 크게. 위의 버튼으로 디지털·아날로그를 고른다(game.js가 채우고 기억한다) */}
+        <div className="sclock">
+          <div className="smode" role="group" aria-label="시계 모양">
+            <button id="sdig" type="button" aria-pressed="true">디지털</button>
+            <button id="sana" type="button" aria-pressed="false">아날로그</button>
+          </div>
+          <div id="sdigital">
+            <div className="stime"><span id="shm">00:00</span><small id="ssec">00</small></div>
+          </div>
+          <div id="sanalog" hidden>
+            <svg viewBox="0 0 200 200" aria-hidden="true">
+              <circle className="face" cx="100" cy="100" r="96" />
+              {Array.from({ length: 60 }, (_, i) => (
+                <line key={i} className={i % 5 ? 'tk' : 'tk h'} x1="100" y1={i % 5 ? 10 : 8} x2="100" y2={i % 5 ? 16 : 24} transform={`rotate(${i * 6} 100 100)`} />
+              ))}
+              <line id="shh" className="hand hh" x1="100" y1="112" x2="100" y2="52" />
+              <line id="smh" className="hand mh" x1="100" y1="116" x2="100" y2="28" />
+              <line id="ssh" className="hand sh" x1="100" y1="122" x2="100" y2="20" />
+              <circle className="pin" cx="100" cy="100" r="4" />
+            </svg>
+          </div>
+          <div className="sdate" id="sdate" />
+        </div>
         <button id="saveroff" type="button">화면보호기 끄기</button>
       </div>
       <div id="fail" hidden>
