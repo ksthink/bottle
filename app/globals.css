@@ -38,6 +38,7 @@ body{background:var(--ink);color:var(--fg);font-family:var(--font-ui);font-size:
 .seedbox{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .seedbox .iname{font-size:14px;max-width:9em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .clock .cl-s{display:none}
+.mname{display:none}
 .setpanel .m-only{display:none}
 .seedbox .num{font-variant-numeric:tabular-nums;font-size:11px;color:var(--muted);letter-spacing:.04em}
 #gear{font-size:17px;line-height:1;padding:6px 9px}
@@ -160,6 +161,13 @@ button:disabled{opacity:.45;cursor:not-allowed}
   .dock .ico-scroll::before,.dock .ico-scroll::after{height:6px}
   .dock #mailbtn{padding:2px 4px}
   .dock > button{font-size:12px;padding:5px 9px;border-radius:7px}
+  /* 모바일 도구 줄은 가운데 */
+  .dock{justify-self:center;justify-content:center}
+  /* 시계 아래 섬 이름(#고유번호) */
+  .mname{display:block;font-size:12px;color:var(--muted);margin-top:1px;max-width:60vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  /* 톱니(설정): 시계와 같은 줄, 같은 글자 크기 */
+  #gear{font-size:13px;line-height:1.5;padding:0 2px;border:0;background:transparent}
+  #gear[aria-expanded="true"]{background:transparent;color:var(--warn)}
   .hud .panel{padding:6px 10px}
   .seedbox{gap:6px}
 }

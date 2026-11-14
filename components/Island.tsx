@@ -27,6 +27,8 @@ export default function Island() {
             {/* 시각: PC는 긴 꼴, 모바일은 2026-11-14(토) 21:34 (game.js가 채운다) */}
             <div className="clock" id="clock"><span className="cl-l" /><span className="cl-s" /></div>
             <div className="status" id="status">1일째</div>
+            {/* 모바일에서만: 시계 아래 섬 이름(#고유번호). 이름은 AccountPanel이, 번호는 game.js가 채운다 */}
+            <div className="mname"><span id="mname-n">무인도</span> <span id="mname-s" /></div>
           </div>
           <div className="panel seedbox">
             {/* 섬 이름(회원은 계정 창에서 고친다)과 이 섬의 고유 번호 */}

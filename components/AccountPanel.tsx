@@ -18,9 +18,12 @@ const locked = (v: View) => v === 'recovery' || v === 'setpw';
 // 섬 이름: 회원이 계정 창에서 짓는다. 짓기 전에는 '무인도'. 화면 왼쪽 위 상자(#iname)에 보인다
 const DEFAULT_NAME = '무인도';
 const NAME_MAX = 12;
+// 오른쪽 위 상자(#iname)와 모바일 시계 아래 줄(#mname-n)에 함께 쓴다
 const showName = (n?: string) => {
-  const el = document.getElementById('iname');
-  if (el) el.textContent = n || DEFAULT_NAME;
+  for (const id of ['iname', 'mname-n']) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = n || DEFAULT_NAME;
+  }
 };
 
 // 오른쪽 위의 계정 버튼과, 누르면 열리는 가입·로그인 종이.
