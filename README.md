@@ -27,7 +27,8 @@ npm run dev
 | `RESEND_API_KEY` | Resend API 키. 신고 메일을 보낸다. 없으면 신고는 기록만 되고 메일은 가지 않는다 |
 | `REPORT_TO`, `MAIL_FROM` | 신고 메일 받는 주소(기본 `bottle@metaphr.dev`)와 보내는 주소(기본 `유리병 편지 섬 <noreply@metaphr.dev>`) |
 | `NEXT_PUBLIC_EMAIL_CODE` | `1`이면 가입 화면에 메일 6자리 코드 입력칸을 보여준다. 자체 SMTP를 연결하고 템플릿에 `{{ .Token }}`을 넣은 뒤 켠다 |
-| `NEXT_PUBLIC_RADIO_URL` | 라디오 방송 주소(HLS `.m3u8`). 비어 있으면 방송이 잡히지 않는다 |
+| `NEXT_PUBLIC_RADIO_URL` | 라디오 방송 주소(HLS `.m3u8`). 있으면 이것을 바로 튼다 |
+| `RADIO_PLS_URL` | `NEXT_PUBLIC_RADIO_URL`이 없을 때 쓰는 재생 목록(`.pls`). 서버(`/api/radio`)가 켤 때마다 읽어 그 안의 https 방송 주소를 넘긴다. 기본값 `http://serpent0.duckdns.org:8088/kbsfm.pls` |
 
 ## Supabase 설정
 
