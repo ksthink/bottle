@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useRef, useState, type CSSProperties, type PointerEvent as RPointerEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { getAccount } from '@/lib/account';
 import { net, type Letters } from '@/lib/net';
@@ -23,6 +23,9 @@ const label = (l: Item, short = false) =>
   (l.rule ? `규칙 편지 ${l.rule} / 3 · ` : '') + (short ? SHORT : DATE).format(new Date(l.at));
 
 const MODE_KEY = 'bottle-mail-view';
+// 두루마리 한 장의 폭과 사이 간격(CSS .track li와 같아야 한다)
+const CARD = 150;
+const STEP = CARD + 18;
 const loadMode = (): Mode => {
   try {
     return localStorage.getItem(MODE_KEY) === 'list' ? 'list' : 'scroll';
@@ -44,9 +47,55 @@ export default function Letterbox() {
   const [err, setErr] = useState('');
   // 오른쪽 아래 두루마리 옆에 보이는 받은 편지 수
   const [count, setCount] = useState<number | null>(null);
-  const rail = useRef<HTMLUListElement>(null);
+  // 두루마리 줄: 브라우저 스크롤 대신 직접 움직인다. pos는 가운데에 온 두루마리 번호(소수 = 넘기는 중)
+  const view = useRef<HTMLDivElement>(null);
+  const track = useRef<HTMLUListElement>(null);
+  const pos = useRef(0);
+  const anim = useRef(0);
+  const lastIdx = useRef(-1);
+  const drag = useRef<{ x: number; start: number; moved: boolean; lx: number; lt: number; v: number } | null>(null);
+  const noClick = useRef(false);
+  const wheel = useRef({ acc: 0, lock: 0 });
   // 창 바깥(어두운 막)에서 눌렀다 뗐을 때만 닫는다
   const downOut = useRef(false);
+
+  // 그리기: 줄을 옮기고, 가운데에서 멀어질수록 두루마리가 작아지고 내려가고 흐려지며 넘기는 쪽으로 기운다(--ad 거리, --sd 방향).
+  // 가운데 두루마리가 바뀌면(톱니 하나를 넘으면) 짧게 진동한다(지원하는 기기만)
+  const paint = (p: number, tick = true) => {
+    const v = view.current;
+    const t = track.current;
+    if (!v || !t) return;
+    pos.current = p;
+    t.style.transform = `translateX(${v.clientWidth / 2 - CARD / 2 - p * STEP}px)`;
+    for (let i = 0; i < t.children.length; i++) {
+      const d = i - p;
+      const li = t.children[i] as HTMLElement;
+      li.style.setProperty('--ad', Math.min(Math.abs(d), 1.5).toFixed(3));
+      li.style.setProperty('--sd', Math.max(-1.5, Math.min(1.5, d)).toFixed(3));
+    }
+    const n = Math.max(0, Math.min(t.children.length - 1, Math.round(p)));
+    if (n !== lastIdx.current) {
+      if (tick && lastIdx.current >= 0) navigator.vibrate?.(6);
+      lastIdx.current = n;
+      setIdx(n);
+    }
+  };
+
+  // 한 칸으로 맞물리기: 목표를 살짝 지나쳤다가 돌아오는 짧은 움직임(톱니가 딸깍 걸리는 느낌)
+  const glide = (to: number) => {
+    cancelAnimationFrame(anim.current);
+    const from = pos.current;
+    const dur = matchMedia('(prefers-reduced-motion: reduce)').matches ? 1 : 360;
+    const t0 = performance.now();
+    const c1 = 1.25;
+    const ease = (x: number) => 1 + (c1 + 1) * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2);
+    const run = (now: number) => {
+      const k = Math.min(1, (now - t0) / dur);
+      paint(from + (to - from) * ease(k));
+      if (k < 1) anim.current = requestAnimationFrame(run);
+    };
+    anim.current = requestAnimationFrame(run);
+  };
 
   useEffect(() => {
     // 받은 편지 수: 처음 한 번, 그리고 해변에서 편지를 열 때마다(game.js가 'bottle-letters'를 알린다) 다시 센다
@@ -79,17 +128,18 @@ export default function Letterbox() {
   useEffect(() => {
     setSel(null);
     setIdx(0);
-    rail.current?.scrollTo({ left: 0 });
+    pos.current = 0;
   }, [tab]);
 
-  // 펼친 편지를 접으면 보던 두루마리가 가운데 오도록 줄을 되돌린다
+  // 줄이 새로 그려지면(편지를 받아 옴, 보기·탭을 바꿈, 펼친 편지를 접음) 보던 자리에 맞춘다. 이때는 진동하지 않는다
   useEffect(() => {
-    const r = rail.current;
-    if (sel !== null || !r) return;
-    const li = r.querySelector('li');
-    if (li) r.scrollLeft = idx * (li.getBoundingClientRect().width + 18);
+    lastIdx.current = -1;
+    paint(Math.round(pos.current), false);
+    const onResize = () => paint(pos.current, false);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sel]);
+  }, [data, mode, tab, sel]);
 
   if (!member) return null;
   const list: Item[] = data?.[tab] ?? [];
@@ -103,15 +153,46 @@ export default function Letterbox() {
     } catch {}
   };
 
-  // 두루마리 줄: 한 칸씩 넘기고, 가운데에 온 두루마리 번호를 센다
-  const step = () => {
-    const li = rail.current?.querySelector('li');
-    return li ? li.getBoundingClientRect().width + 18 : 170;
+  // 한 칸씩 넘기기(버튼·방향키·트랙패드)
+  const go = (n: number) => glide(Math.max(0, Math.min(list.length - 1, n)));
+
+  // 끌기: 손가락을 따라 움직이되 한 칸을 넘으면 점점 뻑뻑해지고(톱니), 양 끝에서는 고무줄처럼 버틴다.
+  // 놓으면 끈 거리나 빠르기로 앞뒤 한 칸(또는 제자리)에 맞물린다
+  const onDown = (e: RPointerEvent) => {
+    if (e.button !== 0) return;
+    cancelAnimationFrame(anim.current);
+    noClick.current = false;
+    drag.current = { x: e.clientX, start: Math.round(pos.current), moved: false, lx: e.clientX, lt: e.timeStamp, v: 0 };
   };
-  const slide = (dir: number) => rail.current?.scrollBy({ left: dir * step(), behavior: 'smooth' });
-  const onRail = () => {
-    const r = rail.current;
-    if (r) setIdx(Math.max(0, Math.min(list.length - 1, Math.round(r.scrollLeft / step()))));
+  const onMove = (e: RPointerEvent) => {
+    const d = drag.current;
+    if (!d) return;
+    const dx = e.clientX - d.x;
+    if (!d.moved) {
+      if (Math.abs(dx) < 6) return;
+      d.moved = true;
+      view.current?.setPointerCapture(e.pointerId);
+    }
+    const dt = Math.max(1, e.timeStamp - d.lt);
+    d.v = d.v * 0.6 + ((e.clientX - d.lx) / dt) * 0.4;
+    d.lx = e.clientX;
+    d.lt = e.timeStamp;
+    const raw = -dx / STEP;
+    const a = Math.abs(raw);
+    let p = d.start + (a <= 1 ? raw : Math.sign(raw) * (1 + (a - 1) * 0.25));
+    const last = list.length - 1;
+    if (p < 0) p *= 0.35;
+    if (p > last) p = last + (p - last) * 0.35;
+    paint(p);
+  };
+  const onUp = () => {
+    const d = drag.current;
+    drag.current = null;
+    if (!d || !d.moved) return;
+    noClick.current = true;
+    const moved = pos.current - d.start;
+    const dir = moved > 0.22 || d.v < -0.35 ? 1 : moved < -0.22 || d.v > 0.35 ? -1 : 0;
+    go(d.start + dir);
   };
 
   const empty = tab === 'received' ? '아직 열어 본 편지가 없습니다.' : '아직 보낸 편지가 없습니다.';
@@ -188,16 +269,42 @@ export default function Letterbox() {
 
                   {data && list.length > 0 && mode === 'scroll' && (
                     <div className="rail-wrap">
-                      <button type="button" className="nav" aria-label="앞 편지" disabled={idx === 0} onClick={() => slide(-1)}>‹</button>
-                      <ul
+                      <button type="button" className="nav" aria-label="앞 편지" disabled={idx === 0} onClick={() => go(idx - 1)}>‹</button>
+                      <div
                         className="rail"
-                        ref={rail}
-                        onScroll={onRail}
+                        ref={view}
+                        tabIndex={0}
+                        aria-label="두루마리. 옆으로 넘겨 고르세요"
+                        onPointerDown={onDown}
+                        onPointerMove={onMove}
+                        onPointerUp={onUp}
+                        onPointerCancel={onUp}
+                        onClickCapture={(e) => {
+                          // 끈 뒤에 손을 떼며 생기는 누름은 두루마리를 펼치지 않는다
+                          if (noClick.current) {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            noClick.current = false;
+                          }
+                        }}
+                        onWheel={(e) => {
+                          // 트랙패드 가로 밀기: 일정만큼 밀릴 때마다 한 칸씩, 맞물리는 동안은 잠깐 쉰다
+                          if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
+                          const w = wheel.current;
+                          if (e.timeStamp < w.lock) return;
+                          w.acc += e.deltaX;
+                          if (Math.abs(w.acc) > 40) {
+                            go(idx + Math.sign(w.acc));
+                            w.acc = 0;
+                            w.lock = e.timeStamp + 380;
+                          }
+                        }}
                         onKeyDown={(e) => {
-                          if (e.key === 'ArrowRight') slide(1);
-                          if (e.key === 'ArrowLeft') slide(-1);
+                          if (e.key === 'ArrowRight') go(idx + 1);
+                          if (e.key === 'ArrowLeft') go(idx - 1);
                         }}
                       >
+                        <ul className="track" ref={track}>
                         {list.map((l, i) => (
                           <li key={i} className={l.rule ? 'rule' : undefined} style={{ '--tilt': `${((i * 37) % 7) - 3}deg` } as CSSProperties}>
                             <button type="button" className="rolled" onClick={() => { setIdx(i); setSel(i); }} aria-label={`${label(l)} 편지 펼치기: ${firstLine(l.body)}`}>
@@ -208,8 +315,9 @@ export default function Letterbox() {
                             <span className="when" aria-hidden="true">{label(l, true)}</span>
                           </li>
                         ))}
-                      </ul>
-                      <button type="button" className="nav" aria-label="다음 편지" disabled={idx >= list.length - 1} onClick={() => slide(1)}>›</button>
+                        </ul>
+                      </div>
+                      <button type="button" className="nav" aria-label="다음 편지" disabled={idx >= list.length - 1} onClick={() => go(idx + 1)}>›</button>
                     </div>
                   )}
                   {data && list.length > 1 && mode === 'scroll' && <p className="pos center">{idx + 1} / {list.length} · 옆으로 넘겨 고르세요</p>}
