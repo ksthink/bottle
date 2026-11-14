@@ -25,6 +25,8 @@ const label = (l: Item, short = false) =>
   (l.rule ? `규칙 편지 ${l.rule} / 3 · ` : '') + (short ? SHORT : DATE).format(new Date(l.at));
 
 const MODE_KEY = 'bottle-mail-view';
+// 펼친 편지의 글자 크기(보통·크게)를 기억한다
+const SIZE_KEY = 'bottle-letter-size';
 // 두루마리 한 장의 폭과 사이 간격(CSS .track li와 같아야 한다)
 const CARD = 150;
 const STEP = CARD + 18;
@@ -48,6 +50,7 @@ export default function Letterbox() {
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState<Tab>('received');
   const [mode, setMode] = useState<Mode>('scroll');
+  const [big, setBig] = useState(false);
   const [sel, setSel] = useState<number | null>(null);
   const [idx, setIdx] = useState(0);
   const [data, setData] = useState<Letters | null>(null);
@@ -122,6 +125,9 @@ export default function Letterbox() {
       if (memberRef.current) recount();
     });
     setMode(loadMode());
+    try {
+      setBig(localStorage.getItem(SIZE_KEY) === 'big');
+    } catch {}
     window.addEventListener('bottle-letters', onNote);
     return () => window.removeEventListener('bottle-letters', onNote);
   }, []);
@@ -167,6 +173,12 @@ export default function Letterbox() {
   const root = typeof document === 'undefined' ? null : document.getElementById('app');
 
   const close = () => setOpen(false);
+  const pickSize = (b: boolean) => {
+    setBig(b);
+    try {
+      localStorage.setItem(SIZE_KEY, b ? 'big' : 'normal');
+    } catch {}
+  };
   const pickMode = (m: Mode) => {
     setMode(m);
     try {
@@ -256,7 +268,13 @@ export default function Letterbox() {
 
               {cur ? (
                 // 펼친 편지: 두루마리(편지 내용)만 보인다. X·바깥·Esc로 접으면 목록으로 돌아간다
-                <div className={'scroll-open' + (cur.rule ? ' rule' : '')} key={sel}>
+                <>
+                {/* 맨 윗줄: 글자 크기 보통·크게(누를 때마다 바뀌고 기억한다). 오른쪽 위 X로 접는다 */}
+                <button type="button" className="seg tsize" aria-label={`글자 크기 ${big ? '크게' : '보통'} · 누르면 ${big ? '보통' : '크게'}으로`} onClick={() => pickSize(!big)}>
+                  <span className={big ? undefined : 'on'}>보통</span>
+                  <span className={big ? 'on' : undefined}>크게</span>
+                </button>
+                <div className={'scroll-open' + (cur.rule ? ' rule' : '') + (big ? ' big' : '')} key={sel}>
                   <h2 id="mail-h" className="sr">{tab === 'received' ? '받은 편지' : '보낸 편지'}</h2>
                   <span className="roll" aria-hidden="true" />
                   <div className="paper" tabIndex={0}>
@@ -265,23 +283,27 @@ export default function Letterbox() {
                   </div>
                   <span className="roll" aria-hidden="true" />
                 </div>
+                </>
               ) : (
                 <>
                   <p className="tag">편지함</p>
                   <h2 id="mail-h" className="sr">{tab === 'received' ? '받은 편지' : '보낸 편지'}</h2>
+                  {/* 한 줄: 받은/보낸 토글(회원만, 누를 때마다 바뀜)과 눈 버튼(누를 때마다 두루마리·목록 보기가 바뀜) */}
                   <div className="mbar">
-                    <div className="tabs" role="tablist" aria-label="편지 종류">
-                      {(member ? (['received', 'sent'] as Tab[]) : (['received'] as Tab[])).map((t) => (
-                        <button key={t} type="button" role="tab" aria-selected={tab === t} className="rch" aria-pressed={tab === t} onClick={() => setTab(t)}>
-                          {t === 'received' ? '받은 편지' : '보낸 편지'}
-                          {box && <span className="cnt">{box[t].length}</span>}
-                        </button>
-                      ))}
-                    </div>
-                    <div className="modes" role="group" aria-label="보기">
-                      <button type="button" className="rch" aria-pressed={mode === 'scroll'} onClick={() => pickMode('scroll')}>두루마리</button>
-                      <button type="button" className="rch" aria-pressed={mode === 'list'} onClick={() => pickMode('list')}>목록</button>
-                    </div>
+                    {member ? (
+                      <button type="button" className="seg" aria-label={`${tab === 'received' ? '받은 편지' : '보낸 편지'} · 누르면 ${tab === 'received' ? '보낸 편지' : '받은 편지'}로`} onClick={() => setTab(tab === 'received' ? 'sent' : 'received')}>
+                        <span className={tab === 'received' ? 'on' : undefined}>받은{box ? ` ${box.received.length}` : ''}</span>
+                        <span className={tab === 'sent' ? 'on' : undefined}>보낸{box ? ` ${box.sent.length}` : ''}</span>
+                      </button>
+                    ) : (
+                      <span className="mlabel">받은 편지{box ? ` ${box.received.length}` : ''}</span>
+                    )}
+                    <button type="button" className="eye" title={mode === 'scroll' ? '두루마리로 보는 중 · 누르면 목록' : '목록으로 보는 중 · 누르면 두루마리'} aria-label={`보기 바꾸기, 지금 ${mode === 'scroll' ? '두루마리' : '목록'}`} onClick={() => pickMode(mode === 'scroll' ? 'list' : 'scroll')}>
+                      <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M1.5 12S5.5 4.5 12 4.5 22.5 12 22.5 12 18.5 19.5 12 19.5 1.5 12 1.5 12Z" />
+                        <circle cx="12" cy="12" r="3.4" />
+                      </svg>
+                    </button>
                   </div>
 
                   {err && <p className="err" role="alert">{err}</p>}

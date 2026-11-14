@@ -39,6 +39,8 @@ export default function AccountPanel() {
   const [name, setName] = useState('');
   // 창 바깥(어두운 막)에서 눌렀다 뗐을 때만 닫는다. 창 안에서 끌다가 바깥에서 놓은 것은 닫지 않는다
   const downOut = useRef(false);
+  // 모바일 설정 안의 계정 버튼(#setacct)이 누르면 부를 함수. 계정이 열린 뒤 그릴 때마다 맞춘다
+  const openRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     setRoot(document.getElementById('app'));
@@ -53,6 +55,19 @@ export default function AccountPanel() {
       }
     });
   }, []);
+
+  // 모바일 설정 안의 계정 버튼: 회원이면 '계정 · 이메일', 손님이면 '가입 · 로그인'. 서버가 없으면(오프라인) 칸을 숨긴다
+  useEffect(() => {
+    const btn = document.getElementById('setacct');
+    const sec = document.getElementById('setacctsec');
+    if (!btn || !sec || !acct) return;
+    const online = acct.kind !== 'offline' && !!supabase;
+    sec.hidden = !online;
+    btn.textContent = acct.kind === 'member' ? `계정 · ${acct.email ?? ''}` : '가입 · 로그인';
+    const onClick = () => openRef.current?.();
+    btn.addEventListener('click', onClick);
+    return () => btn.removeEventListener('click', onClick);
+  }, [acct]);
 
   // 포커스가 창 밖(문서 본문)에 있을 때의 Esc
   useEffect(() => {
@@ -197,6 +212,7 @@ export default function AccountPanel() {
   };
 
   const member = acct.kind === 'member';
+  openRef.current = () => go(member ? 'member' : 'guest');
 
   return (
     <>

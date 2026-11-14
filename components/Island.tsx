@@ -24,7 +24,8 @@ export default function Island() {
         <div className="row">
           <div className="panel">
             <div className="title">나홀로섬에</div>
-            <div className="clock" id="clock" />
+            {/* 시각: PC는 긴 꼴, 모바일은 2026-11-14(토) 21:34 (game.js가 채운다) */}
+            <div className="clock" id="clock"><span className="cl-l" /><span className="cl-s" /></div>
             <div className="status" id="status">1일째</div>
           </div>
           <div className="panel seedbox">
@@ -57,6 +58,11 @@ export default function Island() {
             <h3>날씨</h3>
             <label className="tog"><input type="checkbox" id="setwx" defaultChecked /> 자동 변경</label>
             <p className="setnote" id="setwxnote" />
+          </section>
+          {/* 모바일에서는 오른쪽 위 계정 버튼 대신 여기서 계정 창을 연다(AccountPanel이 글자와 동작을 맞춘다) */}
+          <section className="m-only" id="setacctsec" hidden>
+            <h3>계정</h3>
+            <button id="setacct" type="button">계정</button>
           </section>
           <section>
             <h3>화면보호기</h3>

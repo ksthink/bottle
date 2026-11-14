@@ -37,6 +37,8 @@ body{background:var(--ink);color:var(--fg);font-family:var(--font-ui);font-size:
 .clock{font-size:13px;font-variant-numeric:tabular-nums;margin-top:2px}
 .seedbox{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .seedbox .iname{font-size:14px;max-width:9em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.clock .cl-s{display:none}
+.setpanel .m-only{display:none}
 .seedbox .num{font-variant-numeric:tabular-nums;font-size:11px;color:var(--muted);letter-spacing:.04em}
 #gear{font-size:17px;line-height:1;padding:6px 9px}
 #gear[aria-expanded="true"]{background:rgba(243,236,220,.22)}
@@ -144,6 +146,20 @@ button:disabled{opacity:.45;cursor:not-allowed}
   .row.bottom .center{grid-row:1}
   .dock{grid-row:2}
   .clock{margin-top:0;font-size:13px}
+  /* 모바일: 시각은 짧은 꼴, 계정 버튼은 설정 안으로 */
+  .clock .cl-l{display:none}
+  .clock .cl-s{display:inline}
+  #acctbtn{display:none}
+  .setpanel .m-only{display:flex}
+  /* 모바일 도구 줄: 아이콘을 줄이고, 버튼도 같은 비율(약 80%)로 줄인다 */
+  .dock{gap:5px}
+  .dock .cnt{font-size:13px;gap:4px;padding:2px 4px}
+  .dock .ico-bottle{width:10px;height:18px;margin-top:5px;border-radius:4px 4px 2px 2px}
+  .dock .ico-bottle::before{top:-6px;width:5px;height:5px}
+  .dock .ico-scroll{width:22px;height:14px}
+  .dock .ico-scroll::before,.dock .ico-scroll::after{height:6px}
+  .dock #mailbtn{padding:2px 4px}
+  .dock > button{font-size:12px;padding:5px 9px;border-radius:7px}
   .hud .panel{padding:6px 10px}
   .seedbox{gap:6px}
 }
@@ -177,7 +193,19 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .sheet.mailbox .note,.sheet.mailbox .pos{font-size:13px;color:var(--muted);margin:8px 0 0}
 .sheet.mailbox .pos.center{text-align:center}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
-.mbar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}
+.mbar{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-start;gap:8px;margin-bottom:12px}
+/* 토글(받은|보낸, 보통|크게): 알약 하나에 두 칸, 지금 쪽이 밝다. 누를 때마다 바뀐다 */
+.sheet.mailbox .mbar .seg,.sheet.mailbox .tsize{display:inline-flex;align-items:center;padding:2px;border-radius:999px;background:rgba(243,236,220,.1);border:1px solid var(--panel-line);color:var(--muted);font-size:13px;line-height:1;cursor:pointer}
+.sheet.mailbox .mbar .seg:hover,.sheet.mailbox .tsize:hover{background:rgba(243,236,220,.16)}
+.sheet.mailbox .seg span{padding:5px 10px;border-radius:999px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.sheet.mailbox .seg span.on{background:var(--fg);color:var(--ink)}
+/* 눈 버튼: 누를 때마다 두루마리·목록 보기가 바뀐다 */
+.sheet.mailbox .mbar .eye{display:inline-flex;align-items:center;justify-content:center;width:34px;height:30px;padding:0;border-radius:999px}
+.sheet.mailbox .eye svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linejoin:round}
+.sheet.mailbox .eye svg circle{fill:currentColor;stroke:none}
+.mlabel{font-size:13px;color:var(--muted)}
+.sheet.mailbox.bare .tsize{position:absolute;top:2px;left:8px;background:var(--panel)}
+.scroll-open.big .paper{font-size:21px}
 .mbar .tabs,.mbar .modes{display:flex;gap:6px}
 .mbar .cnt{margin-left:6px;font-size:12px;opacity:.7;font-variant-numeric:tabular-nums}
 .mbar .modes button{font-size:13px;padding:5px 10px}
