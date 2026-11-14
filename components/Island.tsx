@@ -66,7 +66,7 @@ export default function Island() {
         </div>
 
         <div className="row bottom">
-          {/* 왼쪽 아래: 가진 병 수, 받은 편지 수(누르면 편지함), 모래글·앉기. 편지는 해변에서 뜨는 '편지를 쓴다'로 쓴다 */}
+          {/* 왼쪽 아래: 가진 병 수, 받은 편지 수(누르면 편지함), 모래글·앉기·사진찍기. 편지는 해변에서 뜨는 '편지를 쓴다'로 쓴다 */}
           <div className="panel dock">
             <span className="cnt" id="bottles" role="img" aria-label="가진 병">
               <i className="ico-bottle" aria-hidden="true" />
@@ -75,6 +75,7 @@ export default function Island() {
             <Letterbox />
             <button id="sandw" type="button">모래글</button>
             <button id="sit" type="button">앉기</button>
+            <button id="photo" type="button">사진찍기</button>
           </div>
           <div className="center">
             <div id="toast" className="off" role="status" aria-live="polite" />
