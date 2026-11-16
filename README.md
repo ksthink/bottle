@@ -25,7 +25,7 @@
 | 3D | three.js r128 (`three@0.128.0`). 대부분의 자연 요소는 직접 쓴 GLSL 셰이더 |
 | 계정·DB | Supabase: 익명 로그인, 이메일 인증, Postgres 함수(RLS·`security definer`), `pg_cron` 주기 작업 |
 | 메일 | Resend (신고 메일) |
-| 라디오 | 서버가 `.pls` 재생 목록을 읽어 HLS 주소를 넘기고, 화면은 hls.js(cdnjs)로 재생한 뒤 Web Audio로 공간음향을 건다 |
+| 라디오 | 나홀로섬에 라디오(`https://radio.metaphr.dev/listen/나홀로섬에_라디오/radio.mp3`, mp3 192kbps)를 오디오 요소로 틀고 Web Audio로 공간음향을 건다. 주소를 `.m3u8`로 바꾸면 hls.js(cdnjs)로 재생 |
 | 배포 | Vercel |
 
 ## 폴더
@@ -40,7 +40,6 @@ app/
     open/    해변의 병 열기(편지 본문은 이때 처음 내려 준다)
     sink/    병째 가라앉히기(신고). 관리자에게 신고 메일
     withdraw/ 탈퇴
-    radio/   라디오 재생 목록(.pls) → 방송 주소(HLS)
 components/
   Island.tsx                화면 틀. 엔진이 id로 찾아 채운다(React는 다시 그리지 않는다)
   AccountPanel.tsx          가입·로그인·계정 창(섬 이름, 비밀번호 수정, 로그아웃, 탈퇴)
@@ -87,8 +86,7 @@ npm run dev     # http://localhost:3000
 | `RESEND_API_KEY` | Resend API 키. 없으면 신고는 기록만 되고 메일은 가지 않는다 |
 | `REPORT_TO`, `MAIL_FROM` | 신고 메일 받는 주소(기본 `bottle@metaphr.dev`)와 보내는 주소(기본 `나홀로섬에 <noreply@metaphr.dev>`) |
 | `NEXT_PUBLIC_EMAIL_CODE` | `1`이면 가입 화면에 메일 6자리 코드 입력칸을 보여준다. 자체 SMTP를 연결하고 템플릿에 `{{ .Token }}`을 넣은 뒤 켠다 |
-| `NEXT_PUBLIC_RADIO_URL` | 라디오 방송 주소(HLS `.m3u8`). 있으면 이것을 바로 튼다 |
-| `RADIO_PLS_URL` | `NEXT_PUBLIC_RADIO_URL`이 없을 때 쓰는 재생 목록(`.pls`). 서버(`/api/radio`)가 켤 때마다 읽어 그 안의 https 방송 주소를 넘긴다. 기본값 `http://serpent0.duckdns.org:8088/kbsfm.pls` |
+| `NEXT_PUBLIC_RADIO_URL` | 라디오 방송 주소를 바꿀 때만 넣는다(mp3 등은 그대로, `.m3u8`은 HLS로 재생). 비우면 나홀로섬에 라디오 |
 
 ## Supabase 설정
 

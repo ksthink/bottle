@@ -178,7 +178,7 @@ Claude Code 작업 지시용 문서. `prototype/index.html`이 화면과 규칙�
 - (서버 없이 열었을 때) 병은 1~2분 뒤에 온다.
 - 규칙 편지 세 통 뒤에 오는 편지(`SAMPLES`)는 시연용으로 지어낸 글이다.
 - 필터는 정규식 몇 줄짜리 흉내다.
-- 라디오 주소는 `NEXT_PUBLIC_RADIO_URL` 환경 변수로 넣는다. 지금은 비어 있다.
+- 라디오는 나홀로섬에 라디오(`https://radio.metaphr.dev/listen/나홀로섬에_라디오/radio.mp3`)를 튼다. `NEXT_PUBLIC_RADIO_URL` 환경 변수로 바꿀 수 있다.
 
 옮길 때 주의:
 
