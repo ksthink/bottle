@@ -3,16 +3,34 @@
 import { useEffect } from 'react';
 import AccountPanel from './AccountPanel';
 import Letterbox from './Letterbox';
+import Loader, { startLoader } from './Loader';
 import { getAccount } from '@/lib/account';
 import { net } from '@/lib/net';
 
 // 섬 화면의 틀. 내용은 lib/island/game.js 가 id로 찾아 직접 채우고 바꾼다.
 // 이 컴포넌트는 상태가 없어 다시 그려지지 않으므로, React와 엔진이 같은 요소를 두고 다투지 않는다.
+let booted = false; // 개발 모드에서 effect가 두 번 돌아도 섬과 로딩은 한 번만
+
 export default function Island() {
   useEffect(() => {
+    if (booted) return;
+    booted = true;
     // 회원은 저장된 섬, 비회원은 이번 접속의 새 섬을 받아 그린다
     // 편지는 회원만 보낸다(비회원은 받기만). 그래서 회원 여부를 엔진에 함께 넘긴다
-    Promise.all([getAccount(), import('@/lib/island/game')]).then(([a, m]) => m.startIsland(a.seed, a.kind === 'offline' ? null : net, a.born, a.kind === 'member'));
+    // 로딩 화면은 실제로 하는 일의 몫만큼 찬다: 엔진 코드 50, 계정 25, 글꼴 5, 섬 만들기 10, 첫 화면 그리기 10
+    const ld = startLoader();
+    const drawn = new Promise<void>((res) => window.addEventListener('island-ready', () => res(), { once: true }));
+    const font = document.fonts ? document.fonts.load("16px 'NEXON Lv1 Gothic'").then(() => {}, () => {}) : Promise.resolve();
+    Promise.all([ld.track(25, getAccount()), ld.track(50, import('@/lib/island/game')), ld.track(5, font)])
+      .then(async ([a, m]) => {
+        await ld.settle(); // 섬 만들기는 화면을 잠깐 멈추게 하므로, 그 전에 진행 막대를 따라잡게 둔다
+        m.startIsland(a.seed, a.kind === 'offline' ? null : net, a.born, a.kind === 'member');
+        ld.track(10, Promise.resolve());
+        if (!document.getElementById('fail')?.hidden) return; // WebGL을 못 열면 안내 문구를 바로 보인다
+        await ld.track(10, drawn);
+      })
+      .catch((e) => console.error(e))
+      .finally(() => ld.done());
   }, []);
 
   return (
@@ -130,6 +148,7 @@ export default function Island() {
         </div>
         <button id="saveroff" type="button">화면보호기 끄기</button>
       </div>
+      <Loader />
       <div id="fail" hidden>
         이 기기에서는 3D 화면을 열 수 없습니다. WebGL을 지원하는 브라우저에서 다시 열어 주세요.
       </div>
