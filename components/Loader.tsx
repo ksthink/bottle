@@ -75,7 +75,7 @@ export default function Loader() {
             </g>
           </svg>
         </div>
-        <div className="ld-bar" aria-hidden="true"><i /></div>
+        <div className="ld-bar" aria-hidden="true"><i /><b><span /></b></div>
       </div>
     </div>
   );
@@ -99,6 +99,7 @@ export function startLoader(): Loader {
   const put = () => {
     if (!root) return;
     root.style.setProperty('--p', shown.toFixed(2));
+    root.style.setProperty('--pi', String(Math.floor(shown)));
     root.setAttribute('aria-valuenow', String(Math.floor(shown)));
   };
   if (root) {
