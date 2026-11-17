@@ -295,20 +295,19 @@ button:disabled{opacity:.45;cursor:not-allowed}
 
 /* 로딩 화면(components/Loader.tsx): 섬 화면과 같은 짙은 남색 위에 둥근 해변 창. 진행률 --p(0~100)로 위치를 계산한다.
    파도는 95%까지 밀려오다(-54→48) 물러나고(→32), 젖은 모래는 파도가 닿은 데까지 남고, 병은 오른쪽 아래로 실려 와 앉는다 */
-/* 스크립트가 오기 전(페이지 코드 받는 중)에는 CSS만으로 0→12%까지 천천히 차오르고, 스크립트가 오면 그 자리에서 이어받는다.
-   숫자도 --pi를 CSS 카운터로 찍어 같이 움직인다 */
+/* 스크립트가 오기 전(페이지 코드 받는 중)에는 CSS만으로 0→12%까지 천천히 차오르고, 스크립트가 오면 그 자리에서 이어받는다 */
 @property --p{syntax:'<number>';inherits:true;initial-value:0}
-@property --pi{syntax:'<integer>';inherits:true;initial-value:0}
 #loader:not(.js){animation:ld-boot 5s cubic-bezier(.15,.7,.3,1) forwards}
-@keyframes ld-boot{to{--p:12;--pi:12}}
-#loader{--p:0;--pi:0;counter-reset:pct var(--pi);position:absolute;inset:0;z-index:50;display:grid;place-items:center;background:radial-gradient(ellipse at 50% 42%,#173341 0%,var(--ink) 62%);transition:opacity .45s ease}
+@keyframes ld-boot{to{--p:12}}
+#loader{--p:0;position:absolute;inset:0;z-index:50;display:grid;place-items:center;background:radial-gradient(ellipse at 50% 42%,#173341 0%,var(--ink) 62%);transition:opacity .45s ease}
 #loader.out{opacity:0;pointer-events:none}
 .ld{position:relative;display:flex;flex-direction:column;align-items:center;padding-top:20px}
 .ld-badge{position:absolute;top:0;z-index:1;display:flex;align-items:center;gap:6px;padding:5px 16px 4px;border-radius:999px;background:var(--paper);color:var(--paper-ink);border:2px solid #d6c394;box-shadow:0 6px 16px rgba(0,0,0,.35);font-size:17px;letter-spacing:.02em;white-space:nowrap}
 .ld-view{width:min(248px,62vw);aspect-ratio:1;border-radius:50%;overflow:hidden;border:4px solid var(--fg);box-shadow:0 18px 44px rgba(0,0,0,.5)}
 .ld-view svg{display:block;width:100%;height:100%}
-.ld-pct{margin-top:14px;font-size:18px;color:var(--muted);font-variant-numeric:tabular-nums}
-.ld-pct::after{content:counter(pct) '%'}
+/* 진행 막대: 크림색 홈 위로 바다색 물이 차오르고, 앞머리에 흰 물거품이 맺힌다 */
+.ld-bar{width:min(200px,52vw);height:6px;margin-top:18px;border-radius:999px;background:rgba(243,236,220,.14);box-shadow:inset 0 1px 2px rgba(0,0,0,.35);overflow:hidden}
+.ld-bar i{display:block;width:calc(var(--p) * 1%);min-width:6px;height:100%;border-radius:inherit;background:linear-gradient(90deg,#2f8fa8,#3cbcc4 70%,#b4eeee);box-shadow:inset -3px 0 0 rgba(255,255,255,.75)}
 #ld-wave{transform:translateY(min(var(--p) * 1.0737px - 54px, 352px - var(--p) * 3.2px))}
 #ld-wet{transform:translateY(min(var(--p) * 1.0737px - 54px, 48px));opacity:min(.5, var(--p))}
 /* 병은 물거품 선 바로 위(물속)에 실려 오다가, 95% 뒤 파도가 물러날 때 젖은 모래로 내려앉는다 */
